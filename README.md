@@ -1,4 +1,6 @@
 # UKAHT-AV-Media-Enhancement-And-Interrogation
+[中文版本 (Chinese Version)](./README_zh.md)
+
 Automated classification, metadata enrichment, and computer vision tools for UK Antarctic Heritage Trust's historical Antarctic media library, site monitoring, and conservation analysis.
 
 ---

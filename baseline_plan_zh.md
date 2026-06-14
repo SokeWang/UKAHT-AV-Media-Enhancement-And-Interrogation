@@ -1,4 +1,5 @@
 # 核心技术基线与学术方案 (Baseline Plan)：UKAHT 图像搜推与多模态对齐系统
+[English Version (英文版本)](./baseline_plan_en.md)
 
 本基线方案专为数据科学专业毕业设计定制，聚焦于**多模态表示学习（Multimodal Representation Learning）**和**领域自适应（Domain Adaptation）**。系统摒弃了传统的计算机视觉打标或离散拼接，直接采用端到端的双塔表征空间映射，并通过投影适配器微调来优化检索召回精度。
 

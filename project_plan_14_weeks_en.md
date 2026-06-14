@@ -1,4 +1,5 @@
 # Antarctic Multimodal Search & Representation Learning System: 14-Week Project Plan (UKAHT)
+[中文版本 (Chinese Version)](./project_plan_14_weeks_zh.md)
 
 This document outlines a structured, 14-week project plan aligned with the core Data Science architecture:  
 **Antarctic Image $\rightarrow$ Multimodal Representation Models (CLIP & BLIP) $\rightarrow$ [Domain Adaptation MLP Adapter, Weighted Late Fusion, Search Evaluation (MAP/nDCG)]**

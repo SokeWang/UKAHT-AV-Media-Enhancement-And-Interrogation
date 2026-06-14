@@ -1,4 +1,5 @@
 # Baseline & Academic Research Plan: UKAHT Multimodal Image Search & Alignment System
+[中文版本 (Chinese Version)](./baseline_plan_zh.md)
 
 This baseline plan is designed specifically for a Data Science graduation thesis, focusing on **Multimodal Representation Learning** and **Domain Adaptation**. The system rejects traditional discrete object-label pipelines and instead adopts an end-to-end joint semantic vector space alignment, utilizing a trainable projection adapter to optimize polar domain search and recommendations.
 

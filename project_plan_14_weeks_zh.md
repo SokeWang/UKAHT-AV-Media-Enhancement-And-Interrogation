@@ -1,4 +1,5 @@
 # 南极多模态搜推与表征学习系统：14周项目计划 (UKAHT)
+[English Version (英文版本)](./project_plan_14_weeks_en.md)
 
 本毕设项目规划书围绕核心学术架构设计：  
 **南极图像 $\rightarrow$ 多模态表示模型 (CLIP & BLIP) $\rightarrow$ [领域自适应投影 (MLP Adapter), 特征融合检索 (Late Fusion), 检索统计评估 (MAP/nDCG)]**
