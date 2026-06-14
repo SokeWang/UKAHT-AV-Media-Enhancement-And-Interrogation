@@ -216,3 +216,19 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local Data
+UKAHT_Media_Data_OneDrive_2026-06-04.zip
+UK Antarctic Heritage Trust Data/
+
+# Local SQLite databases
+backend/db.sqlite
+db.sqlite
+db.sqlite-journal
+
+# Node dependencies
+node_modules/
+**/node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
