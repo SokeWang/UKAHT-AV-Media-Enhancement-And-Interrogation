@@ -1,7 +1,7 @@
-# UKAHT 南极视听媒体增强与问答系统
+# UKAHT 南极视听媒体智能问答与搜推系统
 [English Version (英文版本)](./README.md)
 
-自动分类、元数据富集及计算机视觉工具，用于英国南极遗产信托基金会（UKAHT）历史南极媒体库的整理、站点监测与遗迹保护分析。
+基于双塔表示学习（Contrastive Representation Learning）构建的端到端多模态图像语义检索与推荐系统，专为英国南极遗产信托基金会（UKAHT）历史图像档案整理设计。系统集成了 CLIP 与 BLIP 大模型，实现了历史照片的自然语言交互搜索、口述访谈本语义关联匹配，以及高维特征的图像相似度关联推荐。
 
 ---
 
@@ -30,14 +30,9 @@ git config --global core.autocrlf true
 git config --global core.autocrlf input
 ```
 
-### 3. 本地 COLMAP 配置（用于 3D 重建）
-后端会通过系统命令直接调用 COLMAP。请确保其已安装并加入系统环境变量：
-*   **macOS：** 在终端运行 `brew install colmap` 进行安装。
-*   **Windows：** 从 [COLMAP GitHub Releases](https://github.com/colmap/colmap/releases) 下载编译好的 Windows 压缩包，解压后，将包含 `colmap.exe` 的 `bin` 文件夹路径添加至系统的环境变量 `Path` 中。
-
 ---
 
-## 🚀 本地运行 MVP 步骤
+## 🚀 本地运行步骤
 
 ### 1. 启动后端 API 服务
 在项目根目录下：
@@ -64,7 +59,7 @@ npm run dev
 ---
 
 ## 📦 通用 Docker 打包（用于终期交付）
-在项目后期，整个应用将被打包成基于 CPU 的通用 Linux Docker 容器，确保客户（UKAHT 工作人员）可以在任何宿主机系统上一键运行：
+整个应用可以被打包成基于 CPU 的通用 Linux Docker 容器，确保可以在任何宿主机系统（Win/Mac/Linux）上一键运行：
 ```bash
 docker-compose up --build
 ```
