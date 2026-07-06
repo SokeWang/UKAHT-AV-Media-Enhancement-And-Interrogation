@@ -77,6 +77,7 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
   1. **Evaluation Tables**: A comparison table in the evaluation Notebook showing **MAP** and **nDCG** scores across configurations (Raw CLIP vs. Adapter-Aligned vs. Late Fusion).
   2. **Clustering Scatters**: 2D scatter plots generated via t-SNE/UMAP in the Notebook, visualizing cluster boundary separation before and after adapter alignment.
   3. **Docker Configurations**: A clean, CPU-compatible `Dockerfile` and `docker-compose.yml` configuration launching frontend and backend services.
+  4. **Evaluation Dashboard UI**: Integrate a static Evaluation Tab in the Streamlit frontend that loads and displays the offline-generated precision comparison tables and t-SNE scatter plots.
 * **Team Mapping**:
-  * **Chenyu Yuan**: Write evaluation scripts for MAP/nDCG metrics and generate t-SNE/UMAP scatter plots.
+  * **Chenyu Yuan**: Write evaluation scripts for MAP/nDCG metrics, generate t-SNE/UMAP scatter plots, and integrate the static evaluation page in the Streamlit UI.
   * **Yisheng Zhang**: Write Dockerfiles and configure docker-compose containers for cross-platform deployment.
