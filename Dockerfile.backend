@@ -1,0 +1,32 @@
+# Dockerfile.backend
+# Owner: Yisheng Zhang — Milestone 5 (containerisation)
+#
+# Builds the FastAPI backend image.
+# Run standalone:
+#   docker build -f Dockerfile.backend -t ukaht-backend .
+#   docker run -p 8000:8000 ukaht-backend
+
+FROM python:3.11-slim
+
+# System dependencies for Pillow / PyTorch
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies first (layer caching)
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY backend/ ./backend/
+
+# Ensure static directories exist
+RUN mkdir -p backend/static/uploads backend/static/models
+
+# Expose FastAPI port
+EXPOSE 8000
+
+# Initialise DB and start the server
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

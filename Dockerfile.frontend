@@ -1,0 +1,30 @@
+# Dockerfile.frontend
+# Owner: Yisheng Zhang — Milestone 5 (containerisation)
+#
+# Builds the Streamlit frontend image.
+# Run standalone:
+#   docker build -f Dockerfile.frontend -t ukaht-frontend .
+#   docker run -p 8501:8501 ukaht-frontend
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONPATH=/app
+
+# Install Streamlit and requests (no ML deps needed in the frontend container)
+RUN pip install --no-cache-dir "streamlit>=1.35.0" "requests>=2.31.0"
+
+# Copy frontend source and any shared backend modules needed at import time
+COPY frontend/ ./frontend/
+COPY backend/db/      ./backend/db/
+COPY backend/models/  ./backend/models/
+# Create __init__.py so backend is treated as a python package
+RUN mkdir -p backend && touch backend/__init__.py
+
+# Expose Streamlit port
+EXPOSE 8501
+
+CMD ["streamlit", "run", "frontend/app.py", \
+     "--server.port=8501", "--server.address=0.0.0.0", \
+     "--server.headless=true"]

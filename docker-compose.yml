@@ -1,12 +1,48 @@
-version: '3.8'
+# docker-compose.yml
+# Owner: Yisheng Zhang — Milestone 5 (containerised deployment)
+#
+# Usage:
+#   docker-compose up --build          # start both services
+#   docker-compose up backend          # backend only
+#   docker-compose down                # stop and remove containers
+
+version: "3.9"
 
 services:
-  web:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.backend
+    container_name: ukaht-backend
     ports:
       - "8000:8000"
+    volumes:
+      # Persist the SQLite database and model weights across container restarts
+      - ./backend/db.sqlite:/app/backend/db.sqlite
+      - ./backend/static:/app/backend/static
+      # Mount dataset directory (read-only) so paths inside the container match
+      - ./UK Antarctic Heritage Trust Data:/data:ro
     environment:
-      - ENV=production
-    restart: always
+      - UKAHT_DATA_DIR=/data
+      - UKAHT_LLM_MODEL=gemma2
+      # Point to Ollama running on the host machine (Mac/Linux)
+      - UKAHT_LLM_BASE_URL=http://host.docker.internal:11434/v1
+      - UKAHT_LLM_API_KEY=ollama
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: ukaht-frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      # Share the same DB so the annotation page can write captions directly
+      - ./backend/db.sqlite:/app/backend/db.sqlite
+      - ./golden_test_set.json:/app/golden_test_set.json
+    environment:
+      - API_BASE=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
