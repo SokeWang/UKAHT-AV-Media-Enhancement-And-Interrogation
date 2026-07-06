@@ -30,36 +30,37 @@ git config --global core.autocrlf true
 git config --global core.autocrlf input
 ```
 
----
+## 🚀 Docker Compose Deployment (Recommended & Only Supported Method)
 
-## 🚀 How to Run the App Locally
+The application is fully containerized. To ensure dependency alignment and prevent cross-platform configuration errors, **Docker Compose is the only supported deployment method**.
 
-### 1. Start Backend Server
-Inside the repository root directory:
+### 1. Prerequisites
+*   Ensure **Docker** and **Docker Compose** are installed and running.
+*   (Optional for Agent) Start Ollama on your host machine and pull your LLM (e.g., `ollama run gemma2`) to enable RAG.
+
+### 2. Start the System
+From the repository root, run:
 ```bash
-# Install dependencies
-pip3 install -r backend/requirements.txt
-
-# Run the FastAPI server with hot-reload enabled
-python3 -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+docker compose up --build -d
 ```
-The interactive API documentation is accessible at `http://127.0.0.1:8000/docs`.
 
-### 2. Start Frontend Dev Server
-Inside the `frontend` folder:
+This will automatically build and launch both backend and frontend microservices:
+*   **FastAPI Backend API**: Accessible at `http://localhost:8000` (docs at `http://localhost:8000/docs`).
+*   **Streamlit Frontend UI**: Open your browser at `http://localhost:8501` to use the portal.
+
+### 3. Stop the System
 ```bash
-# Install dependencies
-npm install
-
-# Run the React hot-reload Vite server
-npm run dev
+docker compose down
 ```
-Open **`http://localhost:5173`** in your browser. All API requests to `/api` and `/static` are automatically proxied to the FastAPI server running on port `8000`.
 
 ---
 
-## 📦 Universal Docker Packaging (For Final Handoff)
-The application can be bundled into a CPU-compatible Docker container, ensuring it runs seamlessly on any host system:
+## 🔍 Log Monitoring & Maintenance
+To check service logs or troubleshoot:
 ```bash
-docker-compose up --build
+# View backend container logs
+docker compose logs backend --tail 50 -f
+
+# View frontend container logs
+docker compose logs frontend --tail 50 -f
 ```

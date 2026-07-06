@@ -30,36 +30,37 @@ git config --global core.autocrlf true
 git config --global core.autocrlf input
 ```
 
----
+## 🚀 Docker Compose 一键部署 (唯一支持的运行方式)
 
-## 🚀 本地运行步骤
+为保证跨平台依赖一致性、避免繁琐的环境配置，本系统**仅支持通过 Docker Compose 容器化部署**，不再保留本地手动安装部署方式。
 
-### 1. 启动后端 API 服务
-在项目根目录下：
+### 1. 前置准备
+*   确保您的宿主机上已经安装并启动了 **Docker** 与 **Docker Compose**。
+*   （可选，用于 AI Agent）在宿主机启动 Ollama 并拉取大模型（如 `ollama run gemma2`）。
+
+### 2. 启动系统
+在项目根目录下，执行以下命令：
 ```bash
-# 安装 Python 依赖库
-pip3 install -r backend/requirements.txt
-
-# 启动 FastAPI 服务并开启热重载 (--reload)
-python3 -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+docker compose up --build -d
 ```
-启动后可通过浏览器访问 `http://127.0.0.1:8000/docs` 查看交互式 API 文档。
 
-### 2. 启动前端开发服务器
-在 `frontend` 目录下：
+该命令将自动下载基础镜像、构建服务并以守护进程模式启动前后端微服务：
+*   **后端 FastAPI 服务**：访问地址为 `http://localhost:8000`（API 交互文档地址：`http://localhost:8000/docs`）。
+*   **前端 Streamlit 界面**：在浏览器中打开 **`http://localhost:8501`** 即可开始使用智能搜推与标注功能。
+
+### 3. 停止系统
 ```bash
-# 安装前端依赖包
-npm install
-
-# 启动 React 热更新开发服务
-npm run dev
+docker compose down
 ```
-启动后通过浏览器访问 **`http://localhost:5173`**。前端对 `/api` 和 `/static` 的所有请求都已配置反向代理（Proxy），会自动转发到运行在 `8000` 端口的 FastAPI 后端服务。
 
 ---
 
-## 📦 通用 Docker 打包（用于终期交付）
-整个应用可以被打包成基于 CPU 的通用 Linux Docker 容器，确保可以在任何宿主机系统（Win/Mac/Linux）上一键运行：
+## 🔍 日志监控与维护
+若需查看运行状态或排查故障，可运行以下命令：
 ```bash
-docker-compose up --build
+# 查看后端运行日志
+docker compose logs backend --tail 50 -f
+
+# 查看前端运行日志
+docker compose logs frontend --tail 50 -f
 ```
