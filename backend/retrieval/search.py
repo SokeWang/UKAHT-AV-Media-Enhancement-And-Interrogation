@@ -15,6 +15,7 @@ Design notes:
   - SQL filter is kept deliberately simple — extend with LIKE / FTS if needed.
 """
 
+import faiss
 import numpy as np
 from typing import Optional
 
@@ -29,11 +30,6 @@ from backend.models.adapter import apply_adapter
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
-
-def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
-    denom = np.linalg.norm(a) * np.linalg.norm(b)
-    return float(np.dot(a, b) / denom) if denom > 0 else 0.0
-
 
 def _row_to_result(row: dict, score: float) -> dict:
     return {
@@ -57,7 +53,7 @@ def semantic_search(
 ) -> list[dict]:
     """
     Encode a text query with CLIP, optionally re-project with adapter,
-    then score all assets by cosine similarity.
+    then score all assets using FAISS similarity search.
 
     Args:
         query:           Natural-language search string.
@@ -70,28 +66,55 @@ def semantic_search(
     """
     init_db()
 
-    if not query.strip():
-        # Return all assets with score 1.0 when query is empty
-        rows = get_all_assets_with_embeddings()
-        return [_row_to_result(r, 1.0) for r in rows]
+    rows = get_all_assets_with_embeddings()
+    
+    # Filter rows by category first
+    matched_rows = []
+    for r in rows:
+        if r["embedding"] is None:
+            continue
+        if category_filter and r["category"].lower() != category_filter.lower():
+            continue
+        matched_rows.append(r)
 
+    if not matched_rows:
+        return []
+
+    if not query.strip():
+        # Return all matched assets with score 1.0 when query is empty
+        return [_row_to_result(r, 1.0) for r in matched_rows]
+
+    # Retrieve and adapt query embedding
     query_emb = get_text_embedding(query)
     query_emb = apply_adapter(query_emb, adapter)
+    query_emb = query_emb.astype("float32").reshape(1, -1)
 
-    rows = get_all_assets_with_embeddings()
+    # Build the FAISS Index
+    # Since query and asset embeddings are L2-normalized, IndexFlatIP is equivalent to cosine similarity.
+    index = faiss.IndexFlatIP(512)
+
+    # Prepare database embeddings
+    embeddings = []
+    for r in matched_rows:
+        emb = np.frombuffer(r["embedding"], dtype=np.float32)
+        emb = apply_adapter(emb, adapter)
+        embeddings.append(emb)
+
+    embeddings_matrix = np.vstack(embeddings).astype("float32")
+    index.add(embeddings_matrix)
+
+    # Query FAISS index
+    k = len(matched_rows)
+    scores, indices = index.search(query_emb, k)
+
+    # Reconstruct sorted result list
     results = []
-    for row in rows:
-        if row["embedding"] is None:
+    for score, idx in zip(scores[0], indices[0]):
+        if idx == -1:
             continue
-        if category_filter and row["category"].lower() != category_filter.lower():
-            continue
+        row = matched_rows[idx]
+        results.append(_row_to_result(row, float(score)))
 
-        asset_emb = np.frombuffer(row["embedding"], dtype=np.float32)
-        asset_emb = apply_adapter(asset_emb, adapter)
-        score = _cosine_similarity(query_emb, asset_emb)
-        results.append(_row_to_result(row, score))
-
-    results.sort(key=lambda x: x["score"], reverse=True)
     return results
 
 
@@ -101,7 +124,7 @@ def recommend(
     adapter=None,
 ) -> list[dict]:
     """
-    Find the most visually similar assets to a given asset.
+    Find the most visually similar assets to a given asset using FAISS similarity search.
 
     Args:
         asset_id: ID of the reference asset already in the database.
@@ -119,19 +142,41 @@ def recommend(
 
     target_emb = np.frombuffer(target["embedding"], dtype=np.float32)
     target_emb = apply_adapter(target_emb, adapter)
+    target_emb = target_emb.astype("float32").reshape(1, -1)
 
     rows = get_all_assets_with_embeddings()
-    results = []
-    for row in rows:
-        if row["id"] == asset_id or row["embedding"] is None:
+    matched_rows = []
+    for r in rows:
+        if r["id"] == asset_id or r["embedding"] is None:
             continue
-        asset_emb = np.frombuffer(row["embedding"], dtype=np.float32)
-        asset_emb = apply_adapter(asset_emb, adapter)
-        score = _cosine_similarity(target_emb, asset_emb)
-        results.append(_row_to_result(row, score))
+        matched_rows.append(r)
 
-    results.sort(key=lambda x: x["score"], reverse=True)
-    return results[:limit]
+    if not matched_rows:
+        return []
+
+    # Build FAISS index for matched assets
+    index = faiss.IndexFlatIP(512)
+    embeddings = []
+    for r in matched_rows:
+        emb = np.frombuffer(r["embedding"], dtype=np.float32)
+        emb = apply_adapter(emb, adapter)
+        embeddings.append(emb)
+
+    embeddings_matrix = np.vstack(embeddings).astype("float32")
+    index.add(embeddings_matrix)
+
+    # Query FAISS index for top visually similar assets
+    k = min(len(matched_rows), limit)
+    scores, indices = index.search(target_emb, k)
+
+    results = []
+    for score, idx in zip(scores[0], indices[0]):
+        if idx == -1:
+            continue
+        row = matched_rows[idx]
+        results.append(_row_to_result(row, float(score)))
+
+    return results
 
 
 def sql_metadata_filter(
