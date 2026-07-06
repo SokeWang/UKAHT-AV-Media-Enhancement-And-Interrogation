@@ -1,5 +1,5 @@
 # Antarctic Multimodal Search & Representation Learning System: 6-Week Project Plan (UKAHT)
-[中文版本 (Chinese Version)](./project_plan_14_weeks_zh.md)
+[中文版本 (Chinese Version)](./project_plan_6_weeks_zh.md)
 
 This document outlines a structured, 6-week project plan aligned with the core Data Science architecture:  
 **Antarctic Image $\rightarrow$ Multimodal Representation Models (CLIP & BLIP) $\rightarrow$ [Domain Adaptation MLP Adapter, Weighted Late Fusion, Search Evaluation (MAP/nDCG)]**
@@ -27,19 +27,19 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
 
 ### **6-Week Schedule**
 
-#### **Phase 1: Core Baseline Pipeline & Verification (Weeks 1-2)**
+#### **Milestone 1: Core Baseline Pipeline & Verification (Weeks 1-2)**
 *Focus: Establish a fully working mock and baseline pipeline to guarantee feasibility early on.*
 * **Explicit Outputs**:
   1. **SQLite Seed Database**: SQLite file `backend/db.sqlite` with `assets` table schema configured for metadata, text descriptions, and 512-dim vector embeddings (BLOBs), populated with initial mock assets.
   2. **FastAPI Services**: Working `/api/search` (semantic search) and `/api/recommend` (visual similarity recommendation) API routes.
-  3. **Frontend Search Grid**: Streamlit/React search panel communicating with backend APIs.
+  3. **Frontend Search Grid**: Streamlit search panel communicating with backend APIs.
   4. **Baseline Verification Script**: A passing `backend/verify_baselines.py` script outputting similarity scores, validating end-to-end connectivity.
 * **Team Mapping**:
   * **Peidong Wang**: Implement pre-trained CLIP/BLIP inference APIs and set up FastAPI structure.
   * **Tian Luo**: Design and initialize the SQLite storage schema.
-  * **Chenyu Yuan**: Design the base Streamlit/React search and grid UI.
+  * **Chenyu Yuan**: Design the base Streamlit search and grid UI.
 
-#### **Phase 2: Corpus Ingestion & Golden Test Set Curation (Week 3)**
+#### **Milestone 2: Corpus Ingestion & Golden Test Set Curation (Week 3)**
 *Focus: Ingest the full 3.3 GB polar image database and establish the validation benchmark.*
 * **Explicit Outputs**:
   1. **Corpus Indexed Database**: SQLite database populated with auto-generated BLIP captions and CLIP visual embeddings for all 3.3 GB of image files.
@@ -50,7 +50,7 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
   * **Tian Luo**: Optimize SQLite batch ingestion transactional logic to speed up database commits.
   * **Chenyu Yuan**: Build the Streamlit assisted annotation page, collaborating with the team to compile the JSON benchmark.
 
-#### **Phase 3: Domain Adaptation MLP Adapter (Week 4)**
+#### **Milestone 3: Domain Adaptation MLP Adapter (Week 4)**
 *Focus: Train the MLP projection adapter using Triplet Loss to correct CLIP polar domain drift.*
 * **Explicit Outputs**:
   1. **Triplet Training Pipeline**: A PyTorch-compatible data generator outputting (Anchor, Positive, Negative) samples.
@@ -60,7 +60,7 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
   * **Peidong Wang**: Design the 2-layer MLP projection adapter, implement the Triplet Loss function, train the model, and integrate it into backend feature extraction.
   * **Yisheng Zhang**: Write the random sampling script to generate positive and negative pairs for training.
 
-#### **Phase 4: LLM Agent & RAG Pipeline Integration (Week 5)**
+#### **Milestone 4: LLM Agent & RAG Pipeline Integration (Week 5)**
 *Focus: Implement the ReAct agent framework to support multi-turn conversational searches.*
 * **Explicit Outputs**:
   1. **Query Intent Router**: ReAct-style prompt templates and routing scripts converting natural language queries into combined Vector + SQL parameters.
@@ -71,7 +71,7 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
   * **Peidong Wang**: Deploy RAG FastAPI endpoints and link the adapter-aligned visual query extraction.
   * **Chenyu Yuan**: Build and styled the multi-turn chat panel in the UI.
 
-#### **Phase 5: Evaluation, High-D Visualization, & Packaging (Week 6)**
+#### **Milestone 5: Evaluation, High-D Visualization, & Packaging (Week 6)**
 *Focus: Run statistical evaluation of retrieval precision, visualize high-dim clusters, and package for handoff.*
 * **Explicit Outputs**:
   1. **Evaluation Tables**: A comparison table in the evaluation Notebook showing **MAP** and **nDCG** scores across configurations (Raw CLIP vs. Adapter-Aligned vs. Late Fusion).
