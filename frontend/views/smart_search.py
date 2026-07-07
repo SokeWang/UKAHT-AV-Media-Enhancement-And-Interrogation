@@ -181,7 +181,7 @@ def _display_grid(assets: list[dict], cols: int = 3) -> str | None:
                     )
                     if "http://backend:8000" in img_url:
                         img_url = img_url.replace("http://backend:8000", "http://localhost:8000")
-                    st.image(img_url, use_container_width=True)
+                    st.image(img_url, width="stretch")
                 except Exception:
                     st.warning("Image unavailable")
                 st.caption(f"**{asset['title']}**")
@@ -212,7 +212,7 @@ def _render_asset_thumbnails(assets: list[dict]):
                 )
                 if "http://backend:8000" in img_url:
                     img_url = img_url.replace("http://backend:8000", "http://localhost:8000")
-                st.image(img_url, use_container_width=True)
+                st.image(img_url, width="stretch")
             except Exception:
                 pass
             st.caption(asset.get("title", "")[:30])
@@ -271,7 +271,7 @@ def render():
         )
     with col_btn:
         st.markdown("<br>", unsafe_allow_html=True)
-        submit_search = st.button("Search & Ask", use_container_width=True)
+        submit_search = st.button("Search & Ask", width="stretch")
 
     # Process search submission
     if submit_search or (query_input != st.session_state.active_query):
@@ -378,7 +378,7 @@ def render():
             with col_sess:
                 st.caption(f"Session Context: `{st.session_state.chat_session_id}`")
             with col_reset:
-                if st.button("Reset Chat", use_container_width=True):
+                if st.button("Reset Chat", width="stretch"):
                     _reset_session(st.session_state.chat_session_id)
                     st.session_state.chat_session_id = f"sess_{uuid.uuid4().hex[:8]}"
                     st.session_state.chat_history = []

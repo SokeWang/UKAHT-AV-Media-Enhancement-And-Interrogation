@@ -103,7 +103,7 @@ def render():
             )
             if "http://backend:8000" in img_url:
                 img_url = img_url.replace("http://backend:8000", "http://localhost:8000")
-            st.image(img_url, use_container_width=True)
+            st.image(img_url, width="stretch")
         except Exception:
             st.warning("Image not displayable")
         st.caption(f"**ID:** {asset['id']}")
@@ -122,12 +122,12 @@ def render():
         col_save, col_golden = st.columns(2)
 
         with col_save:
-            if st.button("💾 Save Caption", use_container_width=True):
+            if st.button("💾 Save Caption", width="stretch"):
                 if _save_caption(asset["id"], caption):
                     st.success("Caption saved.")
 
         with col_golden:
-            if st.button("⭐ Add to Golden Set", use_container_width=True):
+            if st.button("⭐ Add to Golden Set", width="stretch"):
                 if _save_caption(asset["id"], caption):
                     golden = _load_golden()
                     # Check if this asset already has a golden entry
