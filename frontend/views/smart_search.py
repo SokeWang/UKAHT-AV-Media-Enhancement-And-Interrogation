@@ -28,7 +28,11 @@ def _search(query: str, category: str = "") -> list[dict]:
     try:
         resp = requests.post(f"{API_BASE}/api/search", json=payload, timeout=30)
         resp.raise_for_status()
-        return resp.json()
+        res_json = resp.json()
+        if res_json.get("code") == 200:
+            return res_json.get("data", [])
+        st.error(f"Search failed: {res_json.get('message')}")
+        return []
     except Exception as exc:
         st.error(f"Search failed: {exc}")
         return []
@@ -42,7 +46,11 @@ def _recommend(asset_id: str, limit: int = 4) -> list[dict]:
             timeout=30,
         )
         resp.raise_for_status()
-        return resp.json()
+        res_json = resp.json()
+        if res_json.get("code") == 200:
+            return res_json.get("data", [])
+        st.error(f"Recommendation failed: {res_json.get('message')}")
+        return []
     except Exception as exc:
         st.error(f"Recommendation failed: {exc}")
         return []
@@ -56,7 +64,11 @@ def _upload_and_index(file) -> dict | None:
             timeout=60,
         )
         resp.raise_for_status()
-        return resp.json()
+        res_json = resp.json()
+        if res_json.get("code") == 200:
+            return res_json.get("data")
+        st.error(f"Upload failed: {res_json.get('message')}")
+        return None
     except Exception as exc:
         st.error(f"Upload failed: {exc}")
         return None
@@ -70,7 +82,9 @@ def _get_demo_reply(message: str, session_id: str) -> dict:
     try:
         resp = requests.post(f"{API_BASE}/api/search", json={"query": message}, timeout=5)
         if resp.status_code == 200:
-            retrieved_assets = resp.json()[:3]  # cap at 3 for inline chat reference
+            res_json = resp.json()
+            if res_json.get("code") == 200:
+                retrieved_assets = res_json.get("data", [])[:3]  # cap at 3 for inline chat reference
     except Exception:
         pass
 
@@ -122,13 +136,14 @@ def _send_message(message: str, session_id: str) -> dict:
             timeout=60,
         )
         resp.raise_for_status()
-        data = resp.json()
-        
-        # Check if the backend completed successfully but reported LLM unavailable
-        if "[LLM unavailable" in data.get("answer", ""):
-            return _get_demo_reply(message, session_id)
-            
-        return data
+        res_json = resp.json()
+        if res_json.get("code") == 200:
+            data = res_json.get("data", {})
+            # Check if the backend completed successfully but reported LLM unavailable
+            if "[LLM unavailable" in data.get("answer", ""):
+                return _get_demo_reply(message, session_id)
+            return data
+        return _get_demo_reply(message, session_id)
     except Exception:
         # Fall back to custom demo answers if the backend server is offline entirely
         return _get_demo_reply(message, session_id)
@@ -164,6 +179,8 @@ def _display_grid(assets: list[dict], cols: int = 3) -> str | None:
                         if asset["url"].startswith("/")
                         else asset["url"]
                     )
+                    if "http://backend:8000" in img_url:
+                        img_url = img_url.replace("http://backend:8000", "http://localhost:8000")
                     st.image(img_url, use_container_width=True)
                 except Exception:
                     st.warning("Image unavailable")
@@ -193,6 +210,8 @@ def _render_asset_thumbnails(assets: list[dict]):
                     if asset["url"].startswith("/")
                     else asset["url"]
                 )
+                if "http://backend:8000" in img_url:
+                    img_url = img_url.replace("http://backend:8000", "http://localhost:8000")
                 st.image(img_url, use_container_width=True)
             except Exception:
                 pass

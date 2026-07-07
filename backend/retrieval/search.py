@@ -73,7 +73,9 @@ def semantic_search(
     for r in rows:
         if r["embedding"] is None:
             continue
-        if category_filter and r["category"].lower() != category_filter.lower():
+        # Safe category comparison in case category is None/NULL in database
+        asset_cat = r["category"] or ""
+        if category_filter and asset_cat.lower() != category_filter.lower():
             continue
         matched_rows.append(r)
 

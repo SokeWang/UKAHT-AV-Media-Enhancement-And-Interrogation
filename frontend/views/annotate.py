@@ -28,7 +28,11 @@ def _get_all_assets() -> list[dict]:
     try:
         resp = requests.post(f"{API_BASE}/api/search", json={"query": ""}, timeout=20)
         resp.raise_for_status()
-        return resp.json()
+        res_json = resp.json()
+        if res_json.get("code") == 200:
+            return res_json.get("data", [])
+        st.error(f"Could not load assets: {res_json.get('message')}")
+        return []
     except Exception as exc:
         st.error(f"Could not load assets: {exc}")
         return []
@@ -97,6 +101,8 @@ def render():
                 if asset["url"].startswith("/")
                 else asset["url"]
             )
+            if "http://backend:8000" in img_url:
+                img_url = img_url.replace("http://backend:8000", "http://localhost:8000")
             st.image(img_url, use_container_width=True)
         except Exception:
             st.warning("Image not displayable")

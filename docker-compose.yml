@@ -46,3 +46,14 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  frontend-react:
+    build:
+      context: .
+      dockerfile: Dockerfile.react
+    container_name: ukaht-frontend-react
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
