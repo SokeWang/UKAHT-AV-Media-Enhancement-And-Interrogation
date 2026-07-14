@@ -61,10 +61,40 @@ def apply_adapter_from_algo(embeddings: np.ndarray, adapter_path: str = "") -> n
     return res
 
 
+def get_presigned_url(url: str) -> str:
+    import re
+    import boto3
+    # Match standard S3 HTTP endpoint patterns
+    # e.g., https://bucket-name.s3.region-name.amazonaws.com/key-name
+    # or https://bucket-name.s3.amazonaws.com/key-name
+    match = re.match(r"https?://([^.]+)\.s3[^/]*\.amazonaws\.com/(.+)", url)
+    if not match:
+        return url
+    
+    bucket = match.group(1)
+    key = match.group(2)
+    
+    try:
+        s3_region = os.getenv("UKAHT_S3_REGION")
+        s3_client = boto3.client("s3", region_name=s3_region) if s3_region else boto3.client("s3")
+        presigned_url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket, 'Key': key},
+            ExpiresIn=3600
+        )
+        return presigned_url
+    except Exception as e:
+        print(f"[WARN] S3 pre-signing failed for {url}: {e}")
+        return url
+
+
 def _row_to_result(row: dict, score: float) -> dict:
+    url = row["url"]
+    if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+        url = get_presigned_url(url)
     return {
         "id": row["id"],
-        "url": row["url"],
+        "url": url,
         "title": row["title"],
         "category": row["category"],
         "description": row["description"],
@@ -281,4 +311,11 @@ def sql_metadata_filter(
     with get_connection() as conn:
         rows = conn.execute(sql, params).fetchall()
 
-    return [dict(r) for r in rows]
+    results = []
+    for r in rows:
+        d = dict(r)
+        url = d["url"]
+        if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+            d["url"] = get_presigned_url(url)
+        results.append(d)
+    return results

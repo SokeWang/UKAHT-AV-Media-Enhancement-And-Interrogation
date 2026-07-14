@@ -168,7 +168,13 @@ def api_get_all_assets():
     """Return all assets in the database."""
     try:
         from backend.db.database import get_all_assets
-        return {"code": 200, "message": "success", "data": get_all_assets()}
+        assets = get_all_assets()
+        from backend.retrieval.search import get_presigned_url
+        for asset in assets:
+            url = asset["url"]
+            if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                asset["url"] = get_presigned_url(url)
+        return {"code": 200, "message": "success", "data": assets}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
