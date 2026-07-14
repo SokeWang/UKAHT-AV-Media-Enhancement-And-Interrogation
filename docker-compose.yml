@@ -44,7 +44,7 @@ services:
       - ./backend/static:/app/backend/static
     command: uvicorn algorithm.main:app --host 0.0.0.0 --port 8001 --reload
     environment:
-      - UKAHT_LLM_MODEL=gemma2
+      - UKAHT_LLM_MODEL=gemma4:12b
       - UKAHT_LLM_BASE_URL=http://ollama:11434/v1
       - UKAHT_LLM_API_KEY=ollama
       - BACKEND_API_BASE=http://backend:8000
