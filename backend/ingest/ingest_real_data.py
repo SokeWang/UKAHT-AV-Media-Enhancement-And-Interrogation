@@ -329,6 +329,21 @@ def ingest_batch(
 
         # --- Write to DB & Clean up -----------------------------------------
         for idx, (path_or_key, caption, emb, url) in enumerate(zip(item_keys, captions, embeddings, s3_urls)):
+            # Check for duplicate image in the database
+            from backend.db.database import check_duplicate_image
+            emb_bytes = emb.astype("float32").tobytes()
+            duplicate_id = check_duplicate_image(emb_bytes)
+            if duplicate_id:
+                print(f"  [INFO] Visual duplicate detected for {path_or_key} (matches asset: {duplicate_id}). Skipping database insertion.")
+                processed += 1
+                # Clean up local temp files immediately to free space
+                if is_s3:
+                    try:
+                        os.remove(local_paths[idx])
+                    except Exception:
+                        pass
+                continue
+
             asset_id = f"ukaht_{uuid.uuid4().hex[:10]}"
             
             # Formulate friendly title from the stem of original filename
@@ -345,7 +360,7 @@ def ingest_batch(
                 title=title,
                 category=category,
                 description=caption,
-                embedding_bytes=emb.astype("float32").tobytes(),
+                embedding_bytes=emb_bytes,
                 base_code=meta["base_code"],
                 subject_type=meta["subject_type"],
                 shooting_year=meta["shooting_year"],

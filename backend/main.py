@@ -402,6 +402,21 @@ async def api_upload_and_index(file: UploadFile = File(...)):
                 emb_list = embed_resp.json()["data"]["embedding"]
                 emb = np.array(emb_list, dtype=np.float32)
 
+                # Check for duplicate image in the database
+                from backend.db.database import check_duplicate_image, get_asset_by_id
+                emb_bytes = emb.astype("float32").tobytes()
+                duplicate_id = check_duplicate_image(emb_bytes)
+                if duplicate_id:
+                    existing = get_asset_by_id(duplicate_id)
+                    if existing:
+                        indexed_assets.append({
+                            "id": existing["id"],
+                            "url": existing["url"],
+                            "title": existing["title"],
+                            "caption": existing["description"]
+                        })
+                    continue
+
                 # Determine URL and handle S3 upload if configured
                 if s3_bucket:
                     import boto3
@@ -430,7 +445,7 @@ async def api_upload_and_index(file: UploadFile = File(...)):
                     title=title,
                     category=category,
                     description=caption,
-                    embedding_bytes=emb.astype("float32").tobytes(),
+                    embedding_bytes=emb_bytes,
                     base_code=meta["base_code"],
                     subject_type=meta["subject_type"],
                     shooting_year=meta["shooting_year"],
@@ -482,6 +497,28 @@ async def api_upload_and_index(file: UploadFile = File(...)):
             emb_list = embed_resp.json()["data"]["embedding"]
             emb = np.array(emb_list, dtype=np.float32)
 
+            # Check for duplicate image in the database
+            from backend.db.database import check_duplicate_image, get_asset_by_id
+            emb_bytes = emb.astype("float32").tobytes()
+            duplicate_id = check_duplicate_image(emb_bytes)
+            if duplicate_id:
+                try:
+                    os.remove(file_path)
+                except Exception:
+                    pass
+                existing = get_asset_by_id(duplicate_id)
+                return {
+                    "code": 200,
+                    "message": "success",
+                    "data": {
+                        "status": "already_exists",
+                        "id": existing["id"],
+                        "url": existing["url"],
+                        "title": existing["title"],
+                        "caption": existing["description"]
+                    }
+                }
+
             asset_id = f"up_{uuid.uuid4().hex[:8]}"
             title = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
 
@@ -511,7 +548,7 @@ async def api_upload_and_index(file: UploadFile = File(...)):
                 title=title,
                 category=category,
                 description=caption,
-                embedding_bytes=emb.astype("float32").tobytes(),
+                embedding_bytes=emb_bytes,
                 base_code=meta["base_code"],
                 subject_type=meta["subject_type"],
                 shooting_year=meta["shooting_year"],

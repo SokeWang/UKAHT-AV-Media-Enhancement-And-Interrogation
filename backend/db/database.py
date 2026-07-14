@@ -174,3 +174,30 @@ def get_golden_test_set() -> list[dict]:
             "SELECT id, asset_id, caption, annotator, created_at FROM golden_test_set"
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+def check_duplicate_image(new_emb_bytes: bytes, threshold: float = 0.99) -> Optional[str]:
+    """
+    Check if a visually duplicate image already exists in the database.
+    Returns the asset ID of the duplicate if found, otherwise None.
+    """
+    import numpy as np
+    if not new_emb_bytes:
+        return None
+    new_emb = np.frombuffer(new_emb_bytes, dtype=np.float32)
+    norm = np.linalg.norm(new_emb)
+    if norm > 0:
+        new_emb = new_emb / norm
+        
+    all_assets = get_all_assets_with_embeddings()
+    for asset in all_assets:
+        if not asset["embedding"]:
+            continue
+        emb = np.frombuffer(asset["embedding"], dtype=np.float32)
+        emb_norm = np.linalg.norm(emb)
+        if emb_norm > 0:
+            emb = emb / emb_norm
+        similarity = np.dot(new_emb, emb)
+        if similarity >= threshold:
+            return asset["id"]
+    return None
