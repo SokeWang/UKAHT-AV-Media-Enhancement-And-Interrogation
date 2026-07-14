@@ -39,7 +39,6 @@ function App() {
 
   // Search & Database Asset States
   const [allAssets, setAllAssets] = useState<Asset[]>([]);
-  const [searchResults, setSearchResults] = useState<Asset[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
@@ -61,34 +60,10 @@ function App() {
         const resJson = await response.json();
         if (resJson.code === 200) {
           setAllAssets(resJson.data);
-          // Default search results is all assets
-          setSearchResults(resJson.data);
         }
       }
     } catch (err) {
       console.error('Error loading all assets:', err);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const fetchSearchResults = async (query: string) => {
-    setSearchLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      });
-      
-      if (response.ok) {
-        const resJson = await response.json();
-        if (resJson.code === 200) {
-          setSearchResults(resJson.data);
-        }
-      }
-    } catch (err) {
-      console.error('Error searching assets:', err);
     } finally {
       setSearchLoading(false);
     }
@@ -101,7 +76,6 @@ function App() {
     const query = searchInput.trim();
     setActiveQuery(query);
     setIsChatActive(true);
-    fetchSearchResults(query);
 
     // Reset Chat session when query is submitted from main portal
     resetChatSession();
@@ -122,7 +96,6 @@ function App() {
     setIsChatActive(false);
     setSearchInput('');
     setActiveQuery('');
-    setSearchResults(allAssets);
     resetChatSession();
   };
 
@@ -140,7 +113,6 @@ function App() {
 
   const handleAssetUpdate = (updatedAsset: Asset) => {
     setAllAssets(prev => prev.map(a => a.id === updatedAsset.id ? updatedAsset : a));
-    setSearchResults(prev => prev.map(a => a.id === updatedAsset.id ? updatedAsset : a));
     if (activeDrawerAsset && activeDrawerAsset.id === updatedAsset.id) {
       setActiveDrawerAsset(updatedAsset);
     }
@@ -320,130 +292,25 @@ function App() {
           </div>
         ) : (
           /* =========================================================================
-             2. Conversational State: Split layout with retrieval results & AI Chat
+             2. Conversational State: Unified AI Chat Portal (No Split View)
              ========================================================================= */
           <div style={{
-            display: 'flex',
-            gap: '24px',
+            maxWidth: '900px',
+            width: '100%',
             height: 'calc(100vh - 48px)',
+            margin: '0 auto',
             overflow: 'hidden',
             animation: 'fadeIn 0.3s ease'
           }}>
-            {/* Left Column: Retrieval Grid */}
-            <div style={{
-              flex: '1.2 1 0',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              {/* Query Header / Active filter chip */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Retrieval Grid
-                </h3>
-                <div 
-                  onClick={handleResetSearch}
-                  style={{
-                    background: 'rgba(0, 102, 204, 0.08)',
-                    border: '1px solid rgba(0, 102, 204, 0.2)',
-                    padding: '4px 10px',
-                    borderRadius: '50px',
-                    fontSize: '0.8rem',
-                    color: 'var(--accent-blue)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer'
-                  }}
-                  title="Clear active query and go back home"
-                >
-                  <span>Query: <strong>"{activeQuery}"</strong></span>
-                  <span style={{ fontWeight: 800 }}>×</span>
-                </div>
-              </div>
-
-              {/* Grid Scroll Area */}
-              <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
-                {searchLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
-                    <RefreshCw size={16} className="animate-spin" /> Searching archive...
-                  </div>
-                ) : searchResults.length === 0 ? (
-                  <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No images match the query directly.
-                  </div>
-                ) : (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '16px'
-                  }}>
-                    {searchResults.map((asset) => (
-                      <div
-                        key={asset.id}
-                        onClick={() => handleQuickImageClick(asset)}
-                        className="glass-panel glass-panel-interactive animate-slide-up"
-                        style={{
-                          overflow: 'hidden',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '200px'
-                        }}
-                      >
-                        <div style={{ height: '120px', backgroundColor: '#050a14', overflow: 'hidden', position: 'relative' }}>
-                          <img
-                            src={getImageUrl(asset.url)}
-                            alt={asset.title}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                          {asset.score !== undefined && (
-                            <div style={{
-                              position: 'absolute',
-                              bottom: '6px',
-                              right: '6px',
-                              background: 'rgba(5, 10, 20, 0.8)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '0.7rem',
-                              color: 'var(--accent-cyan)'
-                            }}>
-                              Score: {asset.score.toFixed(3)}
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ padding: '10px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                          <div style={{ fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {asset.title}
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
-                            <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
-                              {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column: Chat Assistant */}
-            <div style={{
-              flex: '0.9 1 0',
-              height: '100%'
-            }}>
-              <ChatAssistant
-                apiBase={API_BASE}
-                activeQuery={activeQuery}
-                sessionId={chatSessionId}
-                onResetSession={() => resetChatSession()}
-                chatHistory={chatHistory}
-                setChatHistory={setChatHistory}
-                onSelectAsset={handleSelectAsset}
-              />
-            </div>
+            <ChatAssistant
+              apiBase={API_BASE}
+              activeQuery={activeQuery}
+              sessionId={chatSessionId}
+              onResetSession={() => resetChatSession()}
+              chatHistory={chatHistory}
+              setChatHistory={setChatHistory}
+              onSelectAsset={handleSelectAsset}
+            />
           </div>
         )}
 

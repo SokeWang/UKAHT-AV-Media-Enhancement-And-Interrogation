@@ -267,42 +267,95 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({
             {msg.role === 'assistant' && msg.assets && msg.assets.length > 0 && (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: `repeat(${Math.min(msg.assets.length, 3)}, 1fr)`,
-                gap: '8px',
-                marginTop: '8px'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                gap: '12px',
+                marginTop: '12px',
+                width: '100%'
               }}>
-                {msg.assets.slice(0, 3).map((asset) => (
+                {msg.assets.slice(0, 8).map((asset) => (
                   <div 
                     key={asset.id} 
                     className="glass-panel"
                     onClick={() => onSelectAsset(asset.id)}
                     style={{
-                      padding: '4px',
-                      borderRadius: '6px',
-                      background: '#f1f5f9',
+                      padding: '6px',
+                      borderRadius: '8px',
+                      background: '#ffffff',
                       fontSize: '0.75rem',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                      transition: 'all var(--transition-fast)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      border: '1px solid var(--border-color)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--accent-blue)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px var(--accent-glow)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
                     }}
                   >
-                    <img 
-                      src={getImageUrl(asset.url)} 
-                      alt={asset.title} 
-                      style={{
-                        width: '100%',
-                        height: '60px',
-                        objectFit: 'cover',
-                        borderRadius: '4px',
-                        marginBottom: '4px'
-                      }}
-                    />
+                    <div style={{ height: '95px', backgroundColor: '#050a14', overflow: 'hidden', borderRadius: '6px', marginBottom: '6px', position: 'relative' }}>
+                      <img 
+                        src={getImageUrl(asset.url)} 
+                        alt={asset.title} 
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                      {asset.score !== undefined && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '4px',
+                          right: '4px',
+                          background: 'rgba(5, 10, 20, 0.8)',
+                          padding: '1px 4px',
+                          borderRadius: '3px',
+                          fontSize: '0.6rem',
+                          color: 'var(--accent-cyan)'
+                        }}>
+                          S: {asset.score.toFixed(2)}
+                        </div>
+                      )}
+                    </div>
                     <div style={{
+                      fontWeight: 600,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      color: 'var(--text-secondary)',
-                      padding: '0 2px'
+                      color: 'var(--text-primary)',
+                      padding: '0 2px',
+                      marginBottom: '2px'
                     }}>
                       {asset.title}
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.65rem',
+                      color: 'var(--text-muted)',
+                      padding: '0 2px'
+                    }}>
+                      <span>{asset.category || 'Archive'}</span>
+                      {asset.base_code && (
+                        <span style={{ 
+                          background: 'rgba(94, 168, 241, 0.1)', 
+                          color: 'var(--accent-blue)', 
+                          padding: '1px 4px', 
+                          borderRadius: '3px',
+                          fontWeight: '600'
+                        }}>
+                          Base {asset.base_code}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
