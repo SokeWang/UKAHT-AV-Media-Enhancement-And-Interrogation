@@ -160,7 +160,7 @@ def _reset_session(session_id: str):
 # UI Helpers
 # ---------------------------------------------------------------------------
 
-def _display_grid(assets: list[dict], cols: int = 3) -> str | None:
+def _display_grid(assets: list[dict], cols: int = 3, key_prefix: str = "main") -> str | None:
     """
     Render assets as a clean responsive image grid.
     Returns the ID of the asset clicked, if any.
@@ -190,7 +190,7 @@ def _display_grid(assets: list[dict], cols: int = 3) -> str | None:
                 )
                 # Cap description length to keep the grid tidy
                 st.caption(asset.get("description", "")[:80] + "...")
-                if st.button("Similar →", key=f"rec_{asset['id']}"):
+                if st.button("Similar →", key=f"{key_prefix}_rec_{asset['id']}"):
                     clicked_id = asset["id"]
     return clicked_id
 
@@ -300,27 +300,33 @@ def render():
 
     # --- Content Layout -----------------------------------------------------
     if not st.session_state.active_query:
+        # Show similar images at the top if requested
+        if st.session_state.similar_for_id:
+            col_rec_title, col_rec_close = st.columns([4, 1])
+            with col_rec_title:
+                st.subheader(f"Images Similar to: {st.session_state.similar_for_id}")
+            with col_rec_close:
+                if st.button("Clear Recommendations ✖", key="clear_rec_main"):
+                    st.session_state.similar_for_id = None
+                    st.rerun()
+            with st.spinner("Finding similar images…"):
+                recs = _recommend(st.session_state.similar_for_id)
+            if recs:
+                _display_grid(recs, cols=4, key_prefix="rec_main")
+            else:
+                st.info("No similar images found.")
+            st.divider()
+
         # Initial Load: Show full gallery
         st.subheader("Archived Historical Photos")
         with st.spinner("Loading archive…"):
             all_assets = _search("")
         if all_assets:
             st.markdown(f"**{len(all_assets)} images** in the archive")
-            clicked_id = _display_grid(all_assets, cols=3)
+            clicked_id = _display_grid(all_assets, cols=3, key_prefix="gallery")
             if clicked_id:
                 st.session_state.similar_for_id = clicked_id
                 st.rerun()
-
-        # Show similar images if requested
-        if st.session_state.similar_for_id:
-            st.divider()
-            st.subheader(f"Images Similar to {st.session_state.similar_for_id}")
-            with st.spinner("Finding similar images…"):
-                recs = _recommend(st.session_state.similar_for_id)
-            if recs:
-                _display_grid(recs, cols=4)
-            else:
-                st.info("No similar images found.")
     else:
         # Split Layout: Direct Search on Left, AI Chat on Right
         col_left, col_right = st.columns([5, 4])
@@ -329,29 +335,35 @@ def render():
         # Left Side: Direct Retrieval
         # ----------------------------------------------------
         with col_left:
+            # Show similar images in sub-layout if requested (at the top)
+            if st.session_state.similar_for_id:
+                col_rec_title, col_rec_close = st.columns([3, 1])
+                with col_rec_title:
+                    st.subheader("Similar Images")
+                with col_rec_close:
+                    if st.button("Clear ✖", key="clear_rec_search"):
+                        st.session_state.similar_for_id = None
+                        st.rerun()
+                with st.spinner("Finding similar images…"):
+                    recs = _recommend(st.session_state.similar_for_id)
+                if recs:
+                    _display_grid(recs, cols=2, key_prefix="rec_search")
+                else:
+                    st.info("No similar images found.")
+                st.divider()
+
             st.subheader("🔍 Retrieval Results")
             with st.spinner("Searching archive..."):
                 results = _search(st.session_state.active_query, st.session_state.active_category)
 
             if results:
                 st.markdown(f"Found **{len(results)} images** for *{st.session_state.active_query}*")
-                clicked_id = _display_grid(results, cols=2)
+                clicked_id = _display_grid(results, cols=2, key_prefix="search")
                 if clicked_id:
                     st.session_state.similar_for_id = clicked_id
                     st.rerun()
             else:
                 st.info("No images match the query directly.")
-
-            # Show similar images in sub-layout if requested
-            if st.session_state.similar_for_id:
-                st.divider()
-                st.subheader("Similar Images")
-                with st.spinner("Finding similar images…"):
-                    recs = _recommend(st.session_state.similar_for_id)
-                if recs:
-                    _display_grid(recs, cols=2)
-                else:
-                    st.info("No similar images found.")
 
         # ----------------------------------------------------
         # Right Side: AI Assistant & Q&A
