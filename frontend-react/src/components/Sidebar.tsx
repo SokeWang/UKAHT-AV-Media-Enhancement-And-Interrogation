@@ -1,12 +1,21 @@
 import React from 'react';
-import { Search, Edit } from 'lucide-react';
+import { Search, PlusCircle, Database } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'search' | 'annotate';
-  setActiveTab: (tab: 'search' | 'annotate') => void;
+  onResetSearch: () => void;
+  onOpenUpload: () => void;
+  totalCount: number;
+  originalCount: number;
+  uploadedCount: number;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  onResetSearch, 
+  onOpenUpload,
+  totalCount,
+  originalCount,
+  uploadedCount
+}) => {
   return (
     <aside className="glass-panel" style={{
       width: '280px',
@@ -41,43 +50,66 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         <div style={{
           height: '1px',
           background: 'var(--border-color)',
-          marginBottom: '30px'
+          marginBottom: '24px'
         }} />
 
         {/* Navigation Menu */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
           <button
-            onClick={() => setActiveTab('search')}
-            className={`btn ${activeTab === 'search' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={onResetSearch}
+            className="btn btn-primary"
             style={{
               justifyContent: 'flex-start',
               width: '100%',
               padding: '14px 18px',
-              border: activeTab === 'search' ? 'none' : '1px solid transparent',
-              background: activeTab === 'search' ? undefined : 'transparent',
-              color: activeTab === 'search' ? '#070d19' : 'var(--text-primary)'
+              color: '#ffffff'
             }}
           >
             <Search size={18} />
-            <span>Smart Search & Chat</span>
+            <span>AI Chat Explorer</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('annotate')}
-            className={`btn ${activeTab === 'annotate' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={onOpenUpload}
+            className="btn btn-secondary"
             style={{
               justifyContent: 'flex-start',
               width: '100%',
-              padding: '14px 18px',
-              border: activeTab === 'annotate' ? 'none' : '1px solid transparent',
-              background: activeTab === 'annotate' ? undefined : 'transparent',
-              color: activeTab === 'annotate' ? '#070d19' : 'var(--text-primary)'
+              padding: '14px 18px'
             }}
           >
-            <Edit size={18} />
-            <span>Caption Annotator</span>
+            <PlusCircle size={18} style={{ color: 'var(--accent-blue)' }} />
+            <span>Upload New Image</span>
           </button>
         </nav>
+
+        {/* Stats Panel */}
+        <div style={{
+          background: 'rgba(94, 168, 241, 0.05)',
+          border: '1px solid rgba(94, 168, 241, 0.1)',
+          borderRadius: '10px',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <Database size={15} style={{ color: 'var(--accent-cyan)' }} />
+            <span>Archive Statistics</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Total Images:</span>
+            <span style={{ fontWeight: 600 }}>{totalCount}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Original:</span>
+            <span style={{ fontWeight: 600 }}>{originalCount}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Uploaded:</span>
+            <span style={{ fontWeight: 600 }}>{uploadedCount}</span>
+          </div>
+        </div>
       </div>
 
       {/* Footer Info */}

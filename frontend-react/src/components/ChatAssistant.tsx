@@ -14,6 +14,7 @@ interface ChatAssistantProps {
   onResetSession: () => void;
   chatHistory: ChatMessage[];
   setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  onSelectAsset: (assetId: string) => void;
 }
 
 export const ChatAssistant: React.FC<ChatAssistantProps> = ({
@@ -23,6 +24,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({
   onResetSession,
   chatHistory,
   setChatHistory,
+  onSelectAsset,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -273,11 +275,13 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({
                   <div 
                     key={asset.id} 
                     className="glass-panel"
+                    onClick={() => onSelectAsset(asset.id)}
                     style={{
                       padding: '4px',
                       borderRadius: '6px',
                       background: '#f1f5f9',
-                      fontSize: '0.75rem'
+                      fontSize: '0.75rem',
+                      cursor: 'pointer'
                     }}
                   >
                     <img 
