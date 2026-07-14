@@ -17,9 +17,8 @@ from typing import Any
 
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain.agents import create_agent
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 
 # ---------------------------------------------------------------------------
 # Tool definitions — using LangChain's @tool decorator
@@ -129,48 +128,47 @@ class ReActAgent:
             temperature=0,
         )
 
-        # 2. Build prompt template
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", SYSTEM_PROMPT),
-            MessagesPlaceholder("chat_history"),
-            ("human", "{input}"),
-            MessagesPlaceholder("agent_scratchpad"),
-        ])
-
-        # 3. Create the agent and agent executor
-        agent = create_tool_calling_agent(llm, TOOLS, prompt)
-        agent_executor = AgentExecutor(
-            agent=agent,
-            tools=TOOLS,
-            return_intermediate_steps=True,
-            verbose=True,
-        )
-
-        # 4. Convert history to LangChain message formats
-        chat_history_messages = []
+        # 2. Convert history to LangChain message formats
+        messages = []
         for h in self.history[1:]:  # skip system prompt
             if h["role"] == "user":
-                chat_history_messages.append(HumanMessage(content=h["content"]))
+                messages.append(HumanMessage(content=h["content"]))
             elif h["role"] == "assistant":
-                chat_history_messages.append(AIMessage(content=h["content"]))
+                messages.append(AIMessage(content=h["content"]))
+        messages.append(HumanMessage(content=user_message))
 
-        # 5. Invoke LangChain agent
+        # 3. Create the agent with checkpointer
+        from langgraph.checkpoint.memory import InMemorySaver
+        agent = create_agent(
+            model=llm,
+            tools=TOOLS,
+            system_prompt=SYSTEM_PROMPT,
+            checkpointer=InMemorySaver(),
+        )
+
+        # 4. Invoke agent
         retrieved_assets: list[dict] = []
         try:
-            result = agent_executor.invoke({
-                "input": user_message,
-                "chat_history": chat_history_messages,
-            })
-            answer = result.get("output", "")
+            from langchain_core.utils.uuid import uuid7
+            config = {"configurable": {"thread_id": str(uuid7())}}
+            
+            result = agent.invoke(
+                {"messages": messages},
+                config=config,
+            )
+            
+            latest_message = result["messages"][-1]
+            answer = latest_message.content
 
-            # 6. Extract observations from intermediate steps
-            for action, observation in result.get("intermediate_steps", []):
-                try:
-                    assets_list = json.loads(observation)
-                    if isinstance(assets_list, list):
-                        retrieved_assets.extend(assets_list)
-                except Exception:
-                    pass
+            # Look through messages to find tool call outputs
+            for msg in result["messages"]:
+                if msg.type == "tool" or isinstance(msg, ToolMessage):
+                    try:
+                        assets_list = json.loads(msg.content)
+                        if isinstance(assets_list, list):
+                            retrieved_assets.extend(assets_list)
+                    except Exception:
+                        pass
 
         except Exception as exc:
             answer = f"[LLM unavailable: {exc}]"
