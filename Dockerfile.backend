@@ -4,7 +4,7 @@
 # Builds the FastAPI backend image by compiling the React SPA and bundling it.
 
 # === Stage 1: Build React Frontend ===
-FROM node:18-alpine AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 WORKDIR /build
 COPY frontend-react/package*.json ./
 RUN npm install
