@@ -38,8 +38,11 @@ services:
     ports:
       - "8001:8001"
     volumes:
+      # Mount source code for hot reloading
+      - ./algorithm:/app/algorithm
       # Share the backend static directory to read uploads directly via file paths
       - ./backend/static:/app/backend/static
+    command: uvicorn algorithm.main:app --host 0.0.0.0 --port 8001 --reload
     environment:
       - UKAHT_LLM_MODEL=gemma2
       - UKAHT_LLM_BASE_URL=http://ollama:11434/v1
@@ -68,11 +71,11 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Persist SQLite database and static assets
-      - ./backend/db.sqlite:/app/backend/db.sqlite
-      - ./backend/static:/app/backend/static
+      # Mount source code for hot reloading (handles db.sqlite and static automatically)
+      - ./backend:/app/backend
       # Mount dataset directory (read-only) so paths inside the container match
       - ./UK Antarctic Heritage Trust Data:/data:ro
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - UKAHT_DATA_DIR=/data
       - ALGO_API_BASE=http://algorithm:8001
@@ -93,6 +96,8 @@ services:
     ports:
       - "8501:8501"
     volumes:
+      # Mount source code for hot reloading
+      - ./frontend:/app/frontend
       - ./backend/db.sqlite:/app/backend/db.sqlite
       - ./golden_test_set.json:/app/golden_test_set.json
     environment:
