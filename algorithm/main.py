@@ -34,6 +34,37 @@ app.add_middleware(
 )
 
 # ---------------------------------------------------------------------------
+# Startup Model Preloading (Warm up Ollama)
+# ---------------------------------------------------------------------------
+@app.on_event("startup")
+def startup_event():
+    import threading
+    import requests
+    import time
+
+    def preload_model():
+        model_name = os.getenv("UKAHT_LLM_MODEL", "gemma4:e4b")
+        base_url = os.getenv("UKAHT_LLM_BASE_URL", "http://ollama:11434/v1")
+        native_url = base_url.replace("/v1", "")
+        
+        # Wait a few seconds for Ollama container to start up and be responsive
+        time.sleep(5)
+        
+        try:
+            print(f"[INFO] Preloading Ollama model {model_name} in background...")
+            payload = {"model": model_name}
+            resp = requests.post(f"{native_url}/api/generate", json=payload, timeout=180)
+            if resp.status_code == 200:
+                print(f"[INFO] Successfully preloaded model {model_name} into VRAM.")
+            else:
+                print(f"[WARN] Failed to preload model {model_name}: {resp.text}")
+        except Exception as exc:
+            print(f"[WARN] Failed to preload model {model_name}: {exc}")
+
+    threading.Thread(target=preload_model, daemon=True).start()
+
+
+# ---------------------------------------------------------------------------
 # Lazy adapter loader
 # ---------------------------------------------------------------------------
 _adapter = None
