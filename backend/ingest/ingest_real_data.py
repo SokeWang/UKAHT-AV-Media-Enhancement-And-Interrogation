@@ -108,7 +108,7 @@ def extract_metadata_via_llm(file_path: str) -> dict:
             "temperature": 0
         }
         headers = {"Authorization": f"Bearer {api_key}"}
-        resp = requests.post(f"{base_url}/chat/completions", json=payload, headers=headers, timeout=5.0)
+        resp = requests.post(f"{base_url}/chat/completions", json=payload, headers=headers, timeout=120.0)
         resp.raise_for_status()
         raw_content = resp.json()["choices"][0]["message"]["content"].strip()
         
