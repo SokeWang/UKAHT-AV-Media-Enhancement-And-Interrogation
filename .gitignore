@@ -232,3 +232,7 @@ node_modules/
 frontend/node_modules/
 dist/
 frontend/dist/
+
+# Raw data and OS files
+UKAHT data/
+.DS_Store

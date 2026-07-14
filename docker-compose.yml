@@ -1,14 +1,65 @@
 # docker-compose.yml
-# Owner: Yisheng Zhang — Milestone 5 (containerised deployment)
+# Owner: Antigravity AI Assistant — Milestone 5 (containerised microservice deployment)
 #
 # Usage:
-#   docker-compose up --build          # start both services
-#   docker-compose up backend          # backend only
+#   docker-compose up --build -d       # start all services in background
 #   docker-compose down                # stop and remove containers
 
 version: "3.9"
 
 services:
+  # ---------------------------------------------------------------------------
+  # Local LLM service running via GPU
+  # ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ukaht-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Algorithm Inference Service (CLIP, BLIP, polar adapter, LangChain Agent)
+  # ---------------------------------------------------------------------------
+  algorithm:
+    build:
+      context: .
+      dockerfile: Dockerfile.algorithm
+    container_name: ukaht-algorithm
+    ports:
+      - "8001:8001"
+    volumes:
+      # Share the backend static directory to read uploads directly via file paths
+      - ./backend/static:/app/backend/static
+    environment:
+      - UKAHT_LLM_MODEL=gemma2
+      - UKAHT_LLM_BASE_URL=http://ollama:11434/v1
+      - UKAHT_LLM_API_KEY=ollama
+      - BACKEND_API_BASE=http://backend:8000
+      - UKAHT_STATIC_DIR=/app/backend/static
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Backend API Gateway & Database (FastAPI + SQLite + React SPA Static Files)
+  # ---------------------------------------------------------------------------
   backend:
     build:
       context: .
@@ -17,19 +68,23 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Persist the SQLite database and model weights across container restarts
+      # Persist SQLite database and static assets
       - ./backend/db.sqlite:/app/backend/db.sqlite
       - ./backend/static:/app/backend/static
       # Mount dataset directory (read-only) so paths inside the container match
       - ./UK Antarctic Heritage Trust Data:/data:ro
     environment:
       - UKAHT_DATA_DIR=/data
-      - UKAHT_LLM_MODEL=gemma2
-      # Point to Ollama running on the host machine (Mac/Linux)
-      - UKAHT_LLM_BASE_URL=http://host.docker.internal:11434/v1
-      - UKAHT_LLM_API_KEY=ollama
+      - ALGO_API_BASE=http://algorithm:8001
+      - UKAHT_S3_BUCKET=${UKAHT_S3_BUCKET}
+      - UKAHT_S3_REGION=${UKAHT_S3_REGION}
+    depends_on:
+      - algorithm
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # Streamlit Frontend (optional secondary portal)
+  # ---------------------------------------------------------------------------
   frontend:
     build:
       context: .
@@ -38,22 +93,10 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      # Share the same DB so the annotation page can write captions directly
       - ./backend/db.sqlite:/app/backend/db.sqlite
       - ./golden_test_set.json:/app/golden_test_set.json
     environment:
       - API_BASE=http://backend:8000
-    depends_on:
-      - backend
-    restart: unless-stopped
-
-  frontend-react:
-    build:
-      context: .
-      dockerfile: Dockerfile.react
-    container_name: ukaht-frontend-react
-    ports:
-      - "3000:80"
     depends_on:
       - backend
     restart: unless-stopped

@@ -137,35 +137,20 @@ class ChatRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# In-memory agent session store  (Milestone 4 — Tian Luo)
 # ---------------------------------------------------------------------------
-
-_agent_sessions: dict = {}
-
-
-def _get_agent(session_id: str):
-    from backend.agent.react_agent import ReActAgent
-    if session_id not in _agent_sessions:
-        _agent_sessions[session_id] = ReActAgent()
-    return _agent_sessions[session_id]
-
-
+# Configured Service URL
 # ---------------------------------------------------------------------------
-# Lazy adapter loader  (Milestone 3 — Peidong Wang)
-# ---------------------------------------------------------------------------
-
-_adapter = None
-_adapter_loaded = False
+ALGO_API_BASE = os.getenv("ALGO_API_BASE", "http://localhost:8001")
 
 
-def _get_adapter():
-    global _adapter, _adapter_loaded
-    if not _adapter_loaded:
-        from backend.models.adapter import load_adapter
-        adapter_path = os.path.join(STATIC_DIR, "models", "adapter.pth")
-        _adapter = load_adapter(adapter_path)  # returns None if not yet trained
-        _adapter_loaded = True
-    return _adapter
+class SqlFilterRequest(BaseModel):
+    category: Optional[str] = None
+    keyword: Optional[str] = None
+    base_code: Optional[str] = None
+    subject_type: Optional[str] = None
+    shooting_year: Optional[str] = None
+    copyright: Optional[str] = None
+    data_source: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -264,10 +249,11 @@ def api_search(req: SearchRequest):
     """
     try:
         from backend.retrieval.search import semantic_search
+        # Passes adapter=True so that the query and database embeddings are adapted via the algorithm service if trained
         results = semantic_search(
             query=req.query,
             category_filter=req.category,
-            adapter=_get_adapter(),
+            adapter=True,
         )
         return {"code": 200, "message": "success", "data": results}
     except Exception as exc:
@@ -284,59 +270,260 @@ def api_recommend(req: RecommendRequest):
         results = recommend(
             asset_id=req.id,
             limit=req.limit,
-            adapter=_get_adapter(),
+            adapter=True,
         )
         return {"code": 200, "message": "success", "data": results}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.post("/api/sql-filter")
+def api_sql_filter(req: SqlFilterRequest):
+    """
+    Structured metadata SQL filter endpoint. Used primarily by the LangChain agent.
+    """
+    try:
+        from backend.retrieval.search import sql_metadata_filter
+        results = sql_metadata_filter(
+            category=req.category,
+            keyword=req.keyword,
+            base_code=req.base_code,
+            subject_type=req.subject_type,
+            shooting_year=req.shooting_year,
+            copyright=req.copyright,
+            data_source=req.data_source,
+        )
+        return {"code": 200, "message": "success", "data": results}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+def extract_nested_zips_recursively(zip_path: str, extract_to: str) -> list[str]:
+    import zipfile
+    to_process = [zip_path]
+    os.makedirs(extract_to, exist_ok=True)
+    
+    while to_process:
+        curr_zip = to_process.pop(0)
+        try:
+            with zipfile.ZipFile(curr_zip, 'r') as zf:
+                zf.extractall(path=extract_to)
+        except Exception:
+            continue
+            
+        # Scan for nested zips
+        for root, dirs, files in os.walk(extract_to):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if file.lower().endswith(".zip") and file_path not in to_process:
+                    to_process.append(file_path)
+                    
+    # Clean up zip files
+    for root, dirs, files in os.walk(extract_to):
+        for file in files:
+            if file.lower().endswith(".zip"):
+                try:
+                    os.remove(os.path.join(root, file))
+                except Exception:
+                    pass
+                    
+    # Collect all supported image paths
+    SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp"}
+    image_paths = []
+    for root, dirs, files in os.walk(extract_to):
+        for file in files:
+            ext = os.path.splitext(file)[1].lower()
+            if ext in SUPPORTED_EXTENSIONS:
+                image_paths.append(os.path.join(root, file))
+                
+    return image_paths
+
+
 @app.post("/api/upload-and-index")
 async def api_upload_and_index(file: UploadFile = File(...)):
     """
-    Accept an image upload, auto-caption it with BLIP, compute a CLIP embedding,
-    and store it in the database.
+    Accept an image or ZIP file upload, recursively extract zips, compute captions/embeddings
+    via the algorithm service, upload to S3 if configured, and store it in the database.
     """
     try:
-        # Save uploaded file
+        import requests
+        import numpy as np
+        from pathlib import Path
+        from backend.db.database import init_db, insert_asset
+        from backend.ingest.ingest_real_data import extract_metadata_via_llm
+        init_db()
+
+        # Save uploaded file temporarily
         filename = f"{uuid.uuid4().hex[:8]}_{file.filename}"
         file_path = os.path.join(UPLOAD_DIR, filename)
         with open(file_path, "wb") as buf:
             shutil.copyfileobj(file.file, buf)
 
-        # Generate caption and embedding
-        from backend.models.blip_model import get_caption
-        from backend.models.clip_model import get_image_embedding
-        from backend.db.database import init_db, insert_asset
+        # Check if the uploaded file is a ZIP archive
+        is_zip = file.filename.lower().endswith(".zip")
+        s3_bucket = os.getenv("UKAHT_S3_BUCKET")
+        s3_region = os.getenv("UKAHT_S3_REGION")
+        upload_id = uuid.uuid4().hex[:8]
 
-        init_db()
-        caption = get_caption(file_path)
-        emb = get_image_embedding(file_path)
+        indexed_assets = []
 
-        asset_id = f"up_{uuid.uuid4().hex[:8]}"
-        title = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
-        url = f"/static/uploads/{filename}"
+        if is_zip:
+            extract_to = os.path.join(UPLOAD_DIR, f"zip_temp_{upload_id}")
+            image_paths = extract_nested_zips_recursively(file_path, extract_to)
+            
+            if not s3_bucket:
+                perm_base_dir = os.path.join(UPLOAD_DIR, "unzipped", upload_id)
+                os.makedirs(perm_base_dir, exist_ok=True)
+                
+            for img_path in image_paths:
+                rel_path = os.path.relpath(img_path, extract_to)
+                
+                # Generate caption and embedding via algorithm service
+                caption_resp = requests.post(
+                    f"{ALGO_API_BASE}/api/algo/caption",
+                    params={"path": img_path},
+                    timeout=30
+                )
+                caption_resp.raise_for_status()
+                caption = caption_resp.json()["data"]["caption"]
 
-        insert_asset(
-            asset_id=asset_id,
-            url=url,
-            title=title,
-            category="Uploaded",
-            description=caption,
-            embedding_bytes=emb.astype("float32").tobytes(),
-        )
+                embed_resp = requests.post(
+                    f"{ALGO_API_BASE}/api/algo/embed/image",
+                    params={"path": img_path},
+                    timeout=30
+                )
+                embed_resp.raise_for_status()
+                emb_list = embed_resp.json()["data"]["embedding"]
+                emb = np.array(emb_list, dtype=np.float32)
 
-        return {
-            "code": 200,
-            "message": "success",
-            "data": {
-                "status": "indexed",
-                "id": asset_id,
-                "url": url,
-                "title": title,
-                "caption": caption,
+                # Determine URL and handle S3 upload if configured
+                if s3_bucket:
+                    import boto3
+                    s3_client = boto3.client("s3", region_name=s3_region) if s3_region else boto3.client("s3")
+                    s3_key = f"uploads/{upload_id}/{rel_path}"
+                    s3_client.upload_file(img_path, s3_bucket, s3_key)
+                    
+                    region_str = f".{s3_region}" if s3_region else ""
+                    url = f"https://{s3_bucket}.s3{region_str}.amazonaws.com/{s3_key}"
+                else:
+                    dest_path = os.path.join(perm_base_dir, rel_path)
+                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                    shutil.copy2(img_path, dest_path)
+                    url = f"/static/uploads/unzipped/{upload_id}/{rel_path}"
+
+                asset_id = f"up_{uuid.uuid4().hex[:8]}"
+                title = Path(img_path).stem.replace("_", " ").replace("-", " ").title()
+                
+                # Extract metadata using the relative path inside the zip archive to preserve folder structure
+                meta = extract_metadata_via_llm(rel_path)
+                category = meta["subject_type"] or Path(img_path).parent.name.replace("_", " ").title()
+
+                insert_asset(
+                    asset_id=asset_id,
+                    url=url,
+                    title=title,
+                    category=category,
+                    description=caption,
+                    embedding_bytes=emb.astype("float32").tobytes(),
+                    base_code=meta["base_code"],
+                    subject_type=meta["subject_type"],
+                    shooting_year=meta["shooting_year"],
+                    copyright=meta["copyright"],
+                    data_source=meta["data_source"]
+                )
+                
+                indexed_assets.append({
+                    "id": asset_id,
+                    "url": url,
+                    "title": title,
+                    "caption": caption
+                })
+
+            # Clean up temporary zip and extraction folders
+            try:
+                os.remove(file_path)
+                shutil.rmtree(extract_to)
+            except Exception:
+                pass
+                
+            return {
+                "code": 200,
+                "message": "success",
+                "data": {
+                    "status": "indexed_batch",
+                    "count": len(indexed_assets),
+                    "assets": indexed_assets
+                }
             }
-        }
+        else:
+            # Single image upload
+            # Call algorithm service for BLIP captioning
+            caption_resp = requests.post(
+                f"{ALGO_API_BASE}/api/algo/caption",
+                params={"path": file_path},
+                timeout=30
+            )
+            caption_resp.raise_for_status()
+            caption = caption_resp.json()["data"]["caption"]
+
+            # Call algorithm service for CLIP image embedding
+            embed_resp = requests.post(
+                f"{ALGO_API_BASE}/api/algo/embed/image",
+                params={"path": file_path},
+                timeout=30
+            )
+            embed_resp.raise_for_status()
+            emb_list = embed_resp.json()["data"]["embedding"]
+            emb = np.array(emb_list, dtype=np.float32)
+
+            asset_id = f"up_{uuid.uuid4().hex[:8]}"
+            title = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
+
+            if s3_bucket:
+                import boto3
+                s3_client = boto3.client("s3", region_name=s3_region) if s3_region else boto3.client("s3")
+                s3_key = f"uploads/{upload_id}/{filename}"
+                s3_client.upload_file(file_path, s3_bucket, s3_key)
+                
+                region_str = f".{s3_region}" if s3_region else ""
+                url = f"https://{s3_bucket}.s3{region_str}.amazonaws.com/{s3_key}"
+                
+                try:
+                    os.remove(file_path)
+                except Exception:
+                    pass
+            else:
+                url = f"/static/uploads/{filename}"
+
+            # Pass the filename directly as relative path to preserve single metadata extraction fallback
+            meta = extract_metadata_via_llm(file.filename)
+            category = meta["subject_type"] or "Uploaded"
+
+            insert_asset(
+                asset_id=asset_id,
+                url=url,
+                title=title,
+                category=category,
+                description=caption,
+                embedding_bytes=emb.astype("float32").tobytes(),
+                base_code=meta["base_code"],
+                subject_type=meta["subject_type"],
+                shooting_year=meta["shooting_year"],
+                copyright=meta["copyright"],
+                data_source=meta["data_source"]
+            )
+
+            return {
+                "code": 200,
+                "message": "success",
+                "data": {
+                    "status": "indexed",
+                    "id": asset_id,
+                    "url": url,
+                    "title": title,
+                    "caption": caption,
+                }
+            }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -344,29 +531,39 @@ async def api_upload_and_index(file: UploadFile = File(...)):
 @app.post("/api/agent/chat")
 def api_agent_chat(req: ChatRequest):
     """
-    Multi-turn Q&A via the ReAct LLM agent.
-    Pass a session_id to maintain conversation history across requests.
+    Multi-turn Q&A via the ReAct LLM agent (proxied to the algorithm service).
     """
     try:
-        session_id = req.session_id or "default"
-        agent = _get_agent(session_id)
-        result = agent.run(req.message)
-        return {
-            "code": 200,
-            "message": "success",
-            "data": {
-                "answer": result["answer"],
-                "retrieved_assets": result["retrieved_assets"],
-                "session_id": session_id,
-            }
-        }
+        import requests
+        resp = requests.post(
+            f"{ALGO_API_BASE}/api/algo/agent/chat",
+            json={"message": req.message, "session_id": req.session_id},
+            timeout=60,
+        )
+        resp.raise_for_status()
+        return resp.json()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.delete("/api/agent/session/{session_id}")
 def api_reset_session(session_id: str):
-    """Clear the conversation history for a given session."""
-    if session_id in _agent_sessions:
-        _agent_sessions[session_id].reset()
-    return {"code": 200, "message": "success", "data": {"status": "reset", "session_id": session_id}}
+    """Clear the conversation history for a given session (proxied to the algorithm service)."""
+    try:
+        import requests
+        resp = requests.delete(
+            f"{ALGO_API_BASE}/api/algo/agent/session/{session_id}",
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# Serve React SPA static files (Single Origin Deployment)
+# ---------------------------------------------------------------------------
+react_dist_dir = os.path.join(os.path.dirname(BASE_DIR), "frontend-react", "dist")
+if os.path.exists(react_dist_dir):
+    app.mount("/", StaticFiles(directory=react_dist_dir, html=True), name="react")

@@ -28,23 +28,58 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 @tool
 def semantic_search(query: str, category: str = None) -> str:
     """Search the UKAHT image archive by meaning. Use this when the user asks for images based on visual content or themes."""
-    from backend.retrieval.search import semantic_search as run_semantic_search
-    results = run_semantic_search(
-        query=query,
-        category_filter=category,
-    )[:6]  # cap at 6 results for context window economy
-    return json.dumps(results, ensure_ascii=False)
+    import requests
+    backend_url = os.getenv("BACKEND_API_BASE", "http://localhost:8000")
+    payload = {"query": query}
+    if category:
+        payload["category"] = category
+    try:
+        resp = requests.post(f"{backend_url}/api/search", json=payload, timeout=10)
+        resp.raise_for_status()
+        results = resp.json().get("data", [])[:6]  # cap at 6 results for context window economy
+        return json.dumps(results, ensure_ascii=False)
+    except Exception as exc:
+        return json.dumps({"error": str(exc)}, ensure_ascii=False)
 
 
 @tool
-def sql_filter(category: str = None, keyword: str = None) -> str:
-    """Filter images by structured metadata such as category or keyword. Use when the user asks for a specific category or keyword match."""
-    from backend.retrieval.search import sql_metadata_filter
-    results = sql_metadata_filter(
-        category=category,
-        keyword=keyword,
-    )[:6]
-    return json.dumps(results, ensure_ascii=False)
+def sql_filter(
+    category: str = None,
+    keyword: str = None,
+    base_code: str = None,
+    subject_type: str = None,
+    shooting_year: str = None,
+    copyright: str = None,
+    data_source: str = None
+) -> str:
+    """Filter images by structured metadata. Use when the user asks for specific attributes like years, bases, subjects, copyright credit, or data source.
+    
+    Args:
+        category:      Exact category (case-insensitive).
+        keyword:       General search string in title/description.
+        base_code:     Base letter (e.g. 'E' for Base E, 'W' for Base W, 'A' for Base A).
+        subject_type:  Subject name (e.g. 'Exterior', 'Main Hut', 'Artifact', 'SfM').
+        shooting_year: Year/Season string (e.g. '1958', '2011-12', '2025').
+        copyright:     Credit or copyright owner (e.g. 'Mike Cousins', 'Gordon MacDonald').
+        data_source:   Where the data is from ('original' or 'new_addition').
+    """
+    import requests
+    backend_url = os.getenv("BACKEND_API_BASE", "http://localhost:8000")
+    payload = {}
+    if category: payload["category"] = category
+    if keyword: payload["keyword"] = keyword
+    if base_code: payload["base_code"] = base_code
+    if subject_type: payload["subject_type"] = subject_type
+    if shooting_year: payload["shooting_year"] = shooting_year
+    if copyright: payload["copyright"] = copyright
+    if data_source: payload["data_source"] = data_source
+    try:
+        resp = requests.post(f"{backend_url}/api/sql-filter", json=payload, timeout=10)
+        resp.raise_for_status()
+        results = resp.json().get("data", [])[:6]
+        return json.dumps(results, ensure_ascii=False)
+    except Exception as exc:
+        return json.dumps({"error": str(exc)}, ensure_ascii=False)
 
 
 TOOLS = [semantic_search, sql_filter]

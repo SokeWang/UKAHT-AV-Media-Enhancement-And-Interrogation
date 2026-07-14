@@ -139,21 +139,32 @@ def export_embeddings_for_tsne(output_path: str = "tsne_data.json",
     so the training notebook can run t-SNE without reimporting the full DB.
     """
     from backend.db.database import get_all_assets_with_embeddings
-    from backend.models.adapter import apply_adapter
+    from backend.retrieval.search import apply_adapter_from_algo
 
     rows = get_all_assets_with_embeddings()
-    data = []
-    for row in rows:
-        if row["embedding"] is None:
-            continue
-        emb = np.frombuffer(row["embedding"], dtype=np.float32)
-        emb = apply_adapter(emb, adapter)
-        data.append({
-            "id": row["id"],
-            "title": row["title"],
-            "category": row["category"],
-            "embedding": emb.tolist(),
-        })
+    raw_embs = []
+    valid_rows = []
+    for r in rows:
+        if r["embedding"] is not None:
+            raw_embs.append(np.frombuffer(r["embedding"], dtype=np.float32))
+            valid_rows.append(r)
+            
+    if raw_embs:
+        embeddings_matrix = np.vstack(raw_embs).astype("float32")
+        if adapter:
+            adapter_path = adapter if isinstance(adapter, str) else ""
+            embeddings_matrix = apply_adapter_from_algo(embeddings_matrix, adapter_path)
+            
+        data = []
+        for i, row in enumerate(valid_rows):
+            data.append({
+                "id": row["id"],
+                "title": row["title"],
+                "category": row["category"],
+                "embedding": embeddings_matrix[i].tolist(),
+            })
+    else:
+        data = []
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(data, f)
@@ -176,19 +187,18 @@ def run_evaluation(
         Dict with 'map' and 'ndcg' scores.
     """
     from backend.retrieval.search import semantic_search
-    from backend.models.adapter import load_adapter
 
-    adapter = load_adapter(adapter_path) if adapter_path else None
     golden = load_golden_test_set(golden_path)
 
-    retrieval_fn = lambda q: semantic_search(q, adapter=adapter)
+    # Passes the adapter_path (or empty string) directly to the semantic_search function
+    retrieval_fn = lambda q: semantic_search(q, adapter=adapter_path)
 
     map_score = compute_map(golden, retrieval_fn)
     ndcg_score = compute_ndcg(golden, retrieval_fn, k=10)
 
     results = {
         "num_queries": len(golden),
-        "adapter_used": bool(adapter),
+        "adapter_used": bool(adapter_path),
         "map": round(map_score, 4),
         "ndcg_at_10": round(ndcg_score, 4),
     }

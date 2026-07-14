@@ -24,12 +24,17 @@ DB_PATH = os.path.normpath(_DB_PATH)
 # ---------------------------------------------------------------------------
 _CREATE_ASSETS_TABLE = """
 CREATE TABLE IF NOT EXISTS assets (
-    id          TEXT PRIMARY KEY,
-    url         TEXT NOT NULL,
-    title       TEXT,
-    category    TEXT,
-    description TEXT,      -- auto-generated or manually corrected caption
-    embedding   BLOB       -- CLIP 512-dim float32 vector
+    id            TEXT PRIMARY KEY,
+    url           TEXT NOT NULL,
+    title         TEXT,
+    category      TEXT,
+    description   TEXT,      -- auto-generated or manually corrected caption
+    embedding     BLOB,      -- CLIP 512-dim float32 vector
+    base_code     TEXT,      -- 'A', 'E', 'W'
+    subject_type  TEXT,      -- 'Exterior', 'Main Hut', 'Artifact', 'SfM'
+    shooting_year TEXT,      -- '1958', '2011_12', '2025'
+    copyright     TEXT,      -- credit/copyright holder
+    data_source   TEXT       -- 'original' or 'new_addition'
 )
 """
 
@@ -52,6 +57,21 @@ def init_db() -> None:
     with get_connection() as conn:
         conn.execute(_CREATE_ASSETS_TABLE)
         conn.execute(_CREATE_GOLDEN_TABLE)
+        
+        # Schema migration check: dynamically add columns if they do not exist
+        cursor = conn.execute("PRAGMA table_info(assets)")
+        columns = [row["name"] for row in cursor.fetchall()]
+        new_columns = {
+            "base_code": "TEXT",
+            "subject_type": "TEXT",
+            "shooting_year": "TEXT",
+            "copyright": "TEXT",
+            "data_source": "TEXT"
+        }
+        for col_name, col_type in new_columns.items():
+            if col_name not in columns:
+                conn.execute(f"ALTER TABLE assets ADD COLUMN {col_name} {col_type}")
+                
         conn.commit()
 
 
@@ -77,14 +97,21 @@ def get_connection():
 # ---------------------------------------------------------------------------
 
 def insert_asset(asset_id: str, url: str, title: str, category: str,
-                 description: str, embedding_bytes: bytes) -> None:
+                 description: str, embedding_bytes: bytes,
+                 base_code: Optional[str] = None,
+                 subject_type: Optional[str] = None,
+                 shooting_year: Optional[str] = None,
+                 copyright: Optional[str] = None,
+                 data_source: Optional[str] = None) -> None:
     """Insert or replace a single asset record."""
     with get_connection() as conn:
         conn.execute(
             """INSERT OR REPLACE INTO assets
-               (id, url, title, category, description, embedding)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (asset_id, url, title, category, description, embedding_bytes)
+               (id, url, title, category, description, embedding,
+                base_code, subject_type, shooting_year, copyright, data_source)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (asset_id, url, title, category, description, embedding_bytes,
+             base_code, subject_type, shooting_year, copyright, data_source)
         )
         conn.commit()
 
@@ -103,7 +130,7 @@ def get_all_assets() -> list[dict]:
     """Return all assets as a list of dicts (without embedding bytes)."""
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT id, url, title, category, description FROM assets"
+            "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source FROM assets"
         ).fetchall()
     return [dict(r) for r in rows]
 
@@ -112,7 +139,7 @@ def get_asset_by_id(asset_id: str) -> Optional[dict]:
     """Return a single asset dict including embedding bytes, or None."""
     with get_connection() as conn:
         row = conn.execute(
-            "SELECT id, url, title, category, description, embedding FROM assets WHERE id = ?",
+            "SELECT id, url, title, category, description, embedding, base_code, subject_type, shooting_year, copyright, data_source FROM assets WHERE id = ?",
             (asset_id,)
         ).fetchone()
     return dict(row) if row else None
@@ -122,7 +149,7 @@ def get_all_assets_with_embeddings() -> list[dict]:
     """Return all assets including embedding blobs — used by search."""
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT id, url, title, category, description, embedding FROM assets"
+            "SELECT id, url, title, category, description, embedding, base_code, subject_type, shooting_year, copyright, data_source FROM assets"
         ).fetchall()
     return [dict(r) for r in rows]
 

@@ -40,15 +40,17 @@ def _get_all_assets() -> list[dict]:
 
 def _save_caption(asset_id: str, caption: str) -> bool:
     """
-    Persist the corrected caption.  Currently calls the search endpoint to
-    verify the asset exists; the actual UPDATE goes via the backend DB helper.
-    In a full implementation, add a PATCH /api/assets/{id} endpoint.
+    Persist the corrected caption by calling the backend PUT endpoint.
     """
-    # Temporary: write directly using the backend DB module if running locally
     try:
-        from backend.db.database import update_asset_description
-        update_asset_description(asset_id, caption)
-        return True
+        resp = requests.put(
+            f"{API_BASE}/api/assets/{asset_id}/caption",
+            json={"caption": caption},
+            timeout=10
+        )
+        resp.raise_for_status()
+        res_json = resp.json()
+        return res_json.get("code") == 200
     except Exception as exc:
         st.error(f"Save failed: {exc}")
         return False

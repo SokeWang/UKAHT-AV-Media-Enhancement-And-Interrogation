@@ -1,14 +1,20 @@
 # Dockerfile.backend
-# Owner: Yisheng Zhang — Milestone 5 (containerisation)
+# Owner: Antigravity AI Assistant — Milestone 5 (containerisation)
 #
-# Builds the FastAPI backend image.
-# Run standalone:
-#   docker build -f Dockerfile.backend -t ukaht-backend .
-#   docker run -p 8000:8000 ukaht-backend
+# Builds the FastAPI backend image by compiling the React SPA and bundling it.
 
+# === Stage 1: Build React Frontend ===
+FROM node:18-alpine AS frontend-builder
+WORKDIR /build
+COPY frontend-react/package*.json ./
+RUN npm install
+COPY frontend-react/ ./
+RUN npm run build
+
+# === Stage 2: Backend FastAPI ===
 FROM python:3.11-slim
 
-# System dependencies for Pillow / PyTorch
+# System dependencies for FAISS / OpenMP / Pillow
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 \
     && rm -rf /var/lib/apt/lists/*
@@ -19,11 +25,11 @@ WORKDIR /app
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download CLIP model weights to bake them into the image cache
-RUN python -c "from transformers import CLIPModel, CLIPProcessor; CLIPModel.from_pretrained('openai/clip-vit-base-patch32'); CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32')"
-
 # Copy source code
 COPY backend/ ./backend/
+
+# Copy React built assets
+COPY --from=frontend-builder /build/dist ./frontend-react/dist
 
 # Ensure static directories exist
 RUN mkdir -p backend/static/uploads backend/static/models

@@ -1,0 +1,32 @@
+# Dockerfile.algorithm
+# Owner: Antigravity AI Assistant — Milestone 5 (containerisation)
+#
+# Builds the FastAPI algorithm image containing PyTorch, Transformers and LangChain.
+
+FROM python:3.11-slim
+
+# System dependencies for Pillow / PyTorch / OpenCV
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies first (layer caching)
+COPY algorithm/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download CLIP model weights to bake them into the image cache
+RUN python -c "from transformers import CLIPModel, CLIPProcessor; CLIPModel.from_pretrained('openai/clip-vit-base-patch32'); CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32')"
+
+# Pre-download BLIP model weights to bake them into the image cache
+RUN python -c "from transformers import BlipProcessor, BlipForConditionalGeneration; BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-base'); BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-base')"
+
+# Copy algorithm source code
+COPY algorithm/ ./algorithm/
+
+# Expose FastAPI port
+EXPOSE 8001
+
+# Start the server
+CMD ["uvicorn", "algorithm.main:app", "--host", "0.0.0.0", "--port", "8001"]
