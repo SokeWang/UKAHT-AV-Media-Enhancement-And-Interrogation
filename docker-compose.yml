@@ -75,6 +75,8 @@ services:
       - ./backend:/app/backend
       # Mount dataset directory (read-only) so paths inside the container match
       - ./UK Antarctic Heritage Trust Data:/data:ro
+      # Mount AWS credentials for S3 uploads
+      - ~/.aws:/root/.aws:ro
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - UKAHT_DATA_DIR=/data
