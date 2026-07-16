@@ -44,9 +44,9 @@ From the repository root, run:
 docker compose up --build -d
 ```
 
-This will automatically build and launch both backend and frontend microservices:
+This will automatically build and launch the backend service containing the React frontend:
 *   **FastAPI Backend API**: Accessible at `http://localhost:8000` (docs at `http://localhost:8000/docs`).
-*   **Streamlit Frontend UI**: Open your browser at `http://localhost:8501` to use the portal.
+*   **React Frontend UI**: Open your browser at `http://localhost:8000` to use the portal (served directly via the backend container's static routing).
 
 ### 3. Stop the System
 ```bash
@@ -55,12 +55,16 @@ docker compose down
 
 ---
 
+## 🎨 Frontend Architecture Pivot
+The system was originally designed with a **Streamlit** frontend to support rapid UI prototyping. However, during development, Streamlit was abandoned in favor of a **React Single Page Application (SPA)**. 
+*   **Reason for Abandonment:** Streamlit lacks customization capabilities and has insufficient design/layout freedom (不够定制化，自由度不够) for a premium, responsive multi-turn chat assistant and complex grid annotation layout.
+*   **Target Architecture:** A modern React SPA served statically through the FastAPI backend container for efficient single-origin deployment.
+
+---
+
 ## 🔍 Log Monitoring & Maintenance
 To check service logs or troubleshoot:
 ```bash
-# View backend container logs
+# View backend container logs (includes React frontend logs)
 docker compose logs backend --tail 50 -f
-
-# View frontend container logs
-docker compose logs frontend --tail 50 -f
 ```

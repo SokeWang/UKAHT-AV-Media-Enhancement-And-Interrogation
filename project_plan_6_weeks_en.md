@@ -21,7 +21,7 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
   * **Engineering**: DevOps & Containerization (write Dockerfiles, configure docker-compose orchestration, manage dependencies).
 * **Chenyu Yuan**
   * **DS Core**: Academic Evaluation & Visualization (program evaluation scripts for MAP and nDCG, run ablation studies, build t-SNE/UMAP plots).
-  * **Engineering**: Interactive Streamlit UI (build chat panel, result grids, recommendation cards, and human-in-the-loop annotation UI).
+  * **Engineering**: Interactive Frontend UI (build chat panel, result grids, recommendation cards, and annotation UI; originally planned with Streamlit, but transitioned to a custom React SPA because Streamlit was not customizable enough and lacked design/layout freedom).
 
 ---
 
@@ -44,11 +44,11 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
 * **Explicit Outputs**:
   1. **Corpus Indexed Database**: SQLite database populated with auto-generated BLIP captions and CLIP visual embeddings for all 3.3 GB of image files.
   2. **Golden Test Set File**: A `golden_test_set.json` file containing 50–100 manually curated "strong positive" image-query benchmark pairs.
-  3. **Annotation Interface**: Interactive human-in-the-loop annotation UI panel on the frontend to review and refine captions.
+  3. **Annotation Interface**: Interactive human-in-the-loop annotation UI panel on the frontend to review and refine captions (implemented in the React SPA).
 * **Team Mapping**:
   * **Yisheng Zhang**: Implement batch BLIP captioning pipeline and run 3.3 GB dataset ingestion into SQLite.
   * **Tian Luo**: Optimize SQLite batch ingestion transactional logic to speed up database commits.
-  * **Chenyu Yuan**: Build the Streamlit assisted annotation page, collaborating with the team to compile the JSON benchmark.
+  * **Chenyu Yuan**: Build the React-based assisted annotation page (originally proposed as Streamlit, but pivoted to React to support richer custom layout controls), collaborating with the team to compile the JSON benchmark.
 
 #### **Milestone 3: Domain Adaptation MLP Adapter (Week 4)**
 *Focus: Train the MLP projection adapter using Triplet Loss to correct CLIP polar domain drift.*
@@ -76,8 +76,8 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
 * **Explicit Outputs**:
   1. **Evaluation Tables**: A comparison table in the evaluation Notebook showing **MAP** and **nDCG** scores across configurations (Raw CLIP vs. Adapter-Aligned vs. Late Fusion).
   2. **Clustering Scatters**: 2D scatter plots generated via t-SNE/UMAP in the Notebook, visualizing cluster boundary separation before and after adapter alignment.
-  3. **Docker Configurations**: A clean, CPU-compatible `Dockerfile` and `docker-compose.yml` configuration launching frontend and backend services.
-  4. **Evaluation Dashboard UI**: Integrate a static Evaluation Tab in the Streamlit frontend that loads and displays the offline-generated precision comparison tables and t-SNE scatter plots.
+  3. **Docker Configurations**: A clean, CPU-compatible `Dockerfile` and `docker-compose.yml` configuration launching backend services (which statically serve the compiled React frontend, avoiding the need for a separate frontend container).
+  4. **Evaluation Dashboard UI**: Integrate a static Evaluation Tab in the React frontend (originally planned as a Streamlit tab, but pivoted due to customization constraints) that loads and displays the offline-generated precision comparison tables and t-SNE scatter plots.
 * **Team Mapping**:
-  * **Chenyu Yuan**: Write evaluation scripts for MAP/nDCG metrics, generate t-SNE/UMAP scatter plots, and integrate the static evaluation page in the Streamlit UI.
-  * **Yisheng Zhang**: Write Dockerfiles and configure docker-compose containers for cross-platform deployment.
+  * **Chenyu Yuan**: Write evaluation scripts for MAP/nDCG metrics, generate t-SNE/UMAP scatter plots, and integrate the static evaluation page in the React UI (pivoted from Streamlit).
+  * **Yisheng Zhang**: Write Dockerfiles and configure docker-compose containers for unified backend/frontend-react static hosting deployment.

@@ -94,24 +94,3 @@ services:
     depends_on:
       - algorithm
     restart: unless-stopped
-
-  # ---------------------------------------------------------------------------
-  # Streamlit Frontend (optional secondary portal)
-  # ---------------------------------------------------------------------------
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: ukaht-frontend
-    ports:
-      - "8501:8501"
-    volumes:
-      # Mount source code for hot reloading
-      - ./frontend:/app/frontend
-      - ./backend/db.sqlite:/app/backend/db.sqlite
-      - ./golden_test_set.json:/app/golden_test_set.json
-    environment:
-      - API_BASE=http://backend:8000
-    depends_on:
-      - backend
-    restart: unless-stopped

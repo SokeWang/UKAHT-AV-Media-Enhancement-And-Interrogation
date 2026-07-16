@@ -44,9 +44,9 @@ git config --global core.autocrlf input
 docker compose up --build -d
 ```
 
-该命令将自动下载基础镜像、构建服务并以守护进程模式启动前后端微服务：
+该命令将自动下载基础镜像、构建服务并以守护进程模式启动后端及嵌入的 React 前端服务：
 *   **后端 FastAPI 服务**：访问地址为 `http://localhost:8000`（API 交互文档地址：`http://localhost:8000/docs`）。
-*   **前端 Streamlit 界面**：在浏览器中打开 **`http://localhost:8501`** 即可开始使用智能搜推与标注功能。
+*   **前端 React 界面**：在浏览器中打开 **`http://localhost:8000`** 即可开始使用智能搜推与标注功能（通过后端容器静态文件路由直接托管）。
 
 ### 3. 停止系统
 ```bash
@@ -55,12 +55,16 @@ docker compose down
 
 ---
 
+## 🎨 前端架构路线演进
+本系统最初规划使用 **Streamlit** 作为前端框架以支持快速的原型验证。然而，在实际开发过程中，我们决定放弃 Streamlit 并转向 **React 单页应用（SPA）**。
+*   **放弃 Streamlit 的原因**：Streamlit 的 UI 表达能力和布局不够定制化、自由度不够（不够定制化，自由度不够），难以满足高质量的多轮对话助手界面与复杂检索标注网格的高定制化交互需求。
+*   **目标架构**：采用 React SPA 作为主前端，并通过打包后静态托管至 FastAPI 后端容器中，实现单端口一键部署。
+
+---
+
 ## 🔍 日志监控与维护
 若需查看运行状态或排查故障，可运行以下命令：
 ```bash
-# 查看后端运行日志
+# 查看后端运行日志（包含前端静态文件服务日志）
 docker compose logs backend --tail 50 -f
-
-# 查看前端运行日志
-docker compose logs frontend --tail 50 -f
 ```
