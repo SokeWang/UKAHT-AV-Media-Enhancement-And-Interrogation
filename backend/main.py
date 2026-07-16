@@ -20,8 +20,11 @@ import json
 import os
 import shutil
 import uuid
+import threading
+import numpy as np
+from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -596,6 +599,195 @@ async def api_upload_and_index(file: UploadFile = File(...)):
             }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+
+_sync_lock = threading.Lock()
+_sync_status = {
+    "status": "idle",
+    "processed": 0,
+    "total": 0,
+    "message": "System idle"
+}
+
+def perform_s3_sync():
+    global _sync_status
+    import boto3
+    import requests
+    from backend.db.database import get_all_assets, insert_asset, check_duplicate_image
+    from backend.ingest.ingest_real_data import scan_images_s3, extract_metadata_via_llm
+
+    s3_bucket = os.getenv("UKAHT_S3_BUCKET")
+    s3_region = os.getenv("UKAHT_S3_REGION")
+
+    if not s3_bucket:
+        with _sync_lock:
+            _sync_status = {
+                "status": "error",
+                "processed": 0,
+                "total": 0,
+                "message": "S3 bucket is not configured. Set UKAHT_S3_BUCKET."
+            }
+        return
+
+    try:
+        with _sync_lock:
+            _sync_status["status"] = "scanning"
+            _sync_status["message"] = f"Scanning S3 bucket '{s3_bucket}'..."
+
+        all_keys = scan_images_s3(s3_bucket, region=s3_region)
+
+        all_assets = get_all_assets()
+        existing_urls = {asset["url"] for asset in all_assets if asset.get("url")}
+
+        missing_keys = []
+        region_str = f".{s3_region}" if s3_region else ""
+        for key in all_keys:
+            s3_url = f"https://{s3_bucket}.s3{region_str}.amazonaws.com/{key}"
+            if s3_url not in existing_urls:
+                missing_keys.append((key, s3_url))
+
+        total_missing = len(missing_keys)
+        with _sync_lock:
+            _sync_status["status"] = "syncing"
+            _sync_status["total"] = total_missing
+            _sync_status["processed"] = 0
+            _sync_status["message"] = f"Found {total_missing} missing assets in database. Starting ingestion..."
+
+        if total_missing == 0:
+            with _sync_lock:
+                _sync_status["status"] = "success"
+                _sync_status["message"] = "Database is already up to date with S3."
+            return
+
+        temp_dir = os.path.join(BASE_DIR, "static", "uploads", "s3_temp")
+        os.makedirs(temp_dir, exist_ok=True)
+        s3_client = boto3.client("s3", region_name=s3_region) if s3_region else boto3.client("s3")
+
+        batch_size = 4
+        for i in range(0, total_missing, batch_size):
+            batch = missing_keys[i : i + batch_size]
+            local_paths = []
+            valid_batch_keys = []
+            valid_s3_urls = []
+
+            for key, s3_url in batch:
+                ext = os.path.splitext(key)[1].lower()
+                filename = f"{uuid.uuid4().hex[:12]}{ext}"
+                local_path = os.path.join(temp_dir, filename)
+                try:
+                    s3_client.download_file(s3_bucket, key, local_path)
+                    local_paths.append(local_path)
+                    valid_batch_keys.append(key)
+                    valid_s3_urls.append(s3_url)
+                except Exception as exc:
+                    print(f"[SYNC ERROR] Failed to download {key}: {exc}")
+
+            if not local_paths:
+                continue
+
+            try:
+                resp = requests.post(f"{ALGO_API_BASE}/api/algo/caption/batch", json={"paths": local_paths}, timeout=60)
+                resp.raise_for_status()
+                captions = resp.json()["data"]["captions"]
+            except Exception as exc:
+                print(f"[SYNC WARN] BLIP captioning failed: {exc}")
+                captions = [""] * len(local_paths)
+
+            try:
+                resp = requests.post(f"{ALGO_API_BASE}/api/algo/embed/image/batch", json={"paths": local_paths}, timeout=60)
+                resp.raise_for_status()
+                embeddings_list = resp.json()["data"]["embeddings"]
+                embeddings = [np.array(emb, dtype=np.float32) for emb in embeddings_list]
+            except Exception as exc:
+                print(f"[SYNC WARN] CLIP embedding failed: {exc}")
+                embeddings = [np.zeros(512, dtype="float32")] * len(local_paths)
+
+            for idx, (key, caption, emb, url) in enumerate(zip(valid_batch_keys, captions, embeddings, valid_s3_urls)):
+                emb_bytes = emb.astype("float32").tobytes()
+                duplicate_id = check_duplicate_image(emb_bytes)
+                if duplicate_id:
+                    try:
+                        os.remove(local_paths[idx])
+                    except Exception:
+                        pass
+                    with _sync_lock:
+                        _sync_status["processed"] += 1
+                    continue
+
+                asset_id = f"ukaht_{uuid.uuid4().hex[:10]}"
+                title_stem = Path(key).stem
+                title = title_stem.replace("_", " ").replace("-", " ").title()
+
+                meta = extract_metadata_via_llm(key)
+                category = meta["subject_type"] or "S3 Ingested"
+
+                insert_asset(
+                    asset_id=asset_id,
+                    url=url,
+                    title=title,
+                    category=category,
+                    description=caption,
+                    embedding_bytes=emb_bytes,
+                    base_code=meta["base_code"],
+                    subject_type=meta["subject_type"],
+                    shooting_year=meta["shooting_year"],
+                    copyright=meta["copyright"],
+                    data_source="new_addition"
+                )
+                try:
+                    os.remove(local_paths[idx])
+                except Exception:
+                    pass
+                with _sync_lock:
+                    _sync_status["processed"] += 1
+                    _sync_status["message"] = f"Processed {_sync_status['processed']}/{total_missing} missing assets."
+
+        try:
+            shutil.rmtree(temp_dir)
+        except Exception:
+            pass
+
+        with _sync_lock:
+            _sync_status["status"] = "success"
+            _sync_status["message"] = f"Successfully synchronized {total_missing} assets with S3."
+
+    except Exception as e:
+        with _sync_lock:
+            _sync_status["status"] = "error"
+            _sync_status["message"] = f"Sync failed: {str(e)}"
+
+@app.post("/api/assets/sync")
+def api_sync_assets(background_tasks: BackgroundTasks):
+    global _sync_status
+    with _sync_lock:
+        if _sync_status["status"] in ["scanning", "syncing"]:
+            return {
+                "code": 200,
+                "message": "Synchronization is already in progress.",
+                "data": _sync_status
+            }
+        _sync_status = {
+            "status": "scanning",
+            "processed": 0,
+            "total": 0,
+            "message": "Starting synchronization process..."
+        }
+    background_tasks.add_task(perform_s3_sync)
+    return {
+        "code": 200,
+        "message": "Sync started in background.",
+        "data": _sync_status
+    }
+
+@app.get("/api/assets/sync/status")
+def api_sync_status():
+    global _sync_status
+    with _sync_lock:
+        return {
+            "code": 200,
+            "data": _sync_status
+        }
 
 
 @app.post("/api/agent/chat")

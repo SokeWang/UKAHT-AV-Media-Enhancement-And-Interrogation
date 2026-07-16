@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, PlusCircle, Database, LogOut } from 'lucide-react';
+import { Search, PlusCircle, Database, LogOut, RefreshCw } from 'lucide-react';
 
 interface SidebarProps {
   onResetSearch: () => void;
@@ -8,6 +8,9 @@ interface SidebarProps {
   originalCount: number;
   uploadedCount: number;
   onLogout: () => void;
+  onSyncDatabase: () => void;
+  syncing: boolean;
+  syncStatusText: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
@@ -16,7 +19,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   totalCount,
   originalCount,
   uploadedCount,
-  onLogout
+  onLogout,
+  onSyncDatabase,
+  syncing,
+  syncStatusText
 }) => {
   return (
     <aside className="glass-panel" style={{
@@ -82,6 +88,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <PlusCircle size={18} style={{ color: 'var(--accent-blue)' }} />
             <span>Upload New Image</span>
+          </button>
+
+          <button
+            onClick={onSyncDatabase}
+            className="btn btn-secondary"
+            disabled={syncing}
+            style={{
+              justifyContent: 'flex-start',
+              width: '100%',
+              padding: '14px 18px',
+              cursor: syncing ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <RefreshCw 
+              size={18} 
+              style={{ 
+                color: 'var(--accent-cyan)',
+                animation: syncing ? 'spin 1.5s linear infinite' : 'none'
+              }} 
+            />
+            <span>{syncStatusText}</span>
           </button>
         </nav>
 

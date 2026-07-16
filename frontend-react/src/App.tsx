@@ -43,6 +43,10 @@ function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [activeDrawerAsset, setActiveDrawerAsset] = useState<Asset | null>(null);
 
+  // Synchronization States
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatusText, setSyncStatusText] = useState('Sync S3 Database');
+
   // Search & Database Asset States
   const [allAssets, setAllAssets] = useState<Asset[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -73,6 +77,67 @@ function App() {
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const handleSyncDatabase = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncStatusText('Syncing S3...');
+    try {
+      const response = await fetch(`${API_BASE}/api/assets/sync`, { method: 'POST' });
+      const result = await response.json();
+      if (result.code === 200) {
+        pollSyncStatus();
+      } else {
+        alert(result.detail || result.message || 'Sync failed to start');
+        setSyncing(false);
+        setSyncStatusText('Sync S3 Database');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error connecting to backend for database sync');
+      setSyncing(false);
+      setSyncStatusText('Sync S3 Database');
+    }
+  };
+
+  const pollSyncStatus = () => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/assets/sync/status`);
+        const result = await response.json();
+        if (result.code === 200) {
+          const status = result.data.status;
+          const processed = result.data.processed;
+          const total = result.data.total;
+          const msg = result.data.message;
+
+          if (status === 'scanning') {
+            setSyncStatusText('Scanning S3...');
+          } else if (status === 'syncing') {
+            setSyncStatusText(`Syncing (${processed}/${total})`);
+          } else if (status === 'success') {
+            setSyncStatusText('Sync Completed!');
+            clearInterval(interval);
+            setTimeout(() => {
+              setSyncing(false);
+              setSyncStatusText('Sync S3 Database');
+              loadAllAssets();
+            }, 3000);
+          } else if (status === 'error') {
+            alert(`Sync Error: ${msg}`);
+            setSyncing(false);
+            setSyncStatusText('Sync S3 Database');
+            clearInterval(interval);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        clearInterval(interval);
+        setSyncing(false);
+        setSyncStatusText('Sync S3 Database');
+      }
+    }, 2000);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -170,6 +235,9 @@ function App() {
         originalCount={originalCount}
         uploadedCount={uploadedCount}
         onLogout={handleLogout}
+        onSyncDatabase={handleSyncDatabase}
+        syncing={syncing}
+        syncStatusText={syncStatusText}
       />
 
       {/* Main Content Workspace */}
