@@ -10,6 +10,7 @@ Responsibilities:
 
 import os
 import sqlite3
+import hashlib
 from contextlib import contextmanager
 from typing import Optional
 
@@ -48,6 +49,13 @@ CREATE TABLE IF NOT EXISTS golden_test_set (
 )
 """
 
+_CREATE_USERS_TABLE = """
+CREATE TABLE IF NOT EXISTS users (
+    username       TEXT PRIMARY KEY,
+    password_hash  TEXT NOT NULL
+)
+"""
+
 
 # ---------------------------------------------------------------------------
 # Initialisation
@@ -57,6 +65,7 @@ def init_db() -> None:
     with get_connection() as conn:
         conn.execute(_CREATE_ASSETS_TABLE)
         conn.execute(_CREATE_GOLDEN_TABLE)
+        conn.execute(_CREATE_USERS_TABLE)
         
         # Schema migration check: dynamically add columns if they do not exist
         cursor = conn.execute("PRAGMA table_info(assets)")
@@ -71,6 +80,16 @@ def init_db() -> None:
         for col_name, col_type in new_columns.items():
             if col_name not in columns:
                 conn.execute(f"ALTER TABLE assets ADD COLUMN {col_name} {col_type}")
+                
+        # Seed default user if empty
+        cursor = conn.execute("SELECT COUNT(*) as count FROM users")
+        row = cursor.fetchone()
+        if row["count"] == 0:
+            default_pwd_hash = hashlib.sha256("ukaht2026".encode("utf-8")).hexdigest()
+            conn.execute(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                ("admin", default_pwd_hash)
+            )
                 
         conn.commit()
 
@@ -201,3 +220,16 @@ def check_duplicate_image(new_emb_bytes: bytes, threshold: float = 0.99) -> Opti
         if similarity >= threshold:
             return asset["id"]
     return None
+
+
+def verify_user(username: str, password_plain: str) -> bool:
+    """Verify user password hash from database."""
+    pwd_hash = hashlib.sha256(password_plain.encode("utf-8")).hexdigest()
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT password_hash FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+    if row and row["password_hash"] == pwd_hash:
+        return True
+    return False

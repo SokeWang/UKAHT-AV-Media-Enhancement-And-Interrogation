@@ -55,6 +55,13 @@ app = FastAPI(
     ),
 )
 
+# Initialize database tables and user at application startup
+from backend.db.database import init_db
+try:
+    init_db()
+except Exception as _e:
+    print(f"Error initializing database at startup: {_e}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -121,6 +128,11 @@ async def global_exception_handler(request, exc):
 # Request / response models
 # ---------------------------------------------------------------------------
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
 class SearchRequest(BaseModel):
     query: str
     category: Optional[str] = None  # optional category filter
@@ -161,6 +173,21 @@ class SqlFilterRequest(BaseModel):
 def health_check():
     """Quick liveness check."""
     return {"code": 200, "message": "success", "data": {"status": "ok", "version": app.version}}
+
+
+@app.post("/api/auth/login")
+def api_login(req: LoginRequest):
+    """Authenticate user credentials."""
+    try:
+        from backend.db.database import verify_user
+        if verify_user(req.username, req.password):
+            return {"code": 200, "message": "success", "data": {"authenticated": True}}
+        else:
+            raise HTTPException(status_code=401, detail="Invalid username or password")
+    except HTTPException as he:
+        raise he
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.get("/api/assets")

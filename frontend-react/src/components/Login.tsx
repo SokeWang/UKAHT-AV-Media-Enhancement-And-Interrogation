@@ -5,6 +5,10 @@ interface LoginProps {
   onLoginSuccess: () => void;
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE !== undefined 
+  ? import.meta.env.VITE_API_BASE 
+  : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8000' : '');
+
 export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -13,7 +17,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -24,9 +28,20 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     setLoading(true);
 
-    // Mock authentication check
-    setTimeout(() => {
-      if (username.trim() === 'admin' && password === 'ukaht-polar') {
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.code === 200) {
         if (rememberMe) {
           localStorage.setItem('ukaht_auth', 'true');
         } else {
@@ -34,10 +49,14 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         }
         onLoginSuccess();
       } else {
-        setError('Invalid username or password. Check the credentials below.');
+        setError(data.message || 'Invalid username or password. Check the credentials below.');
         setLoading(false);
       }
-    }, 800);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Connection failed. Please ensure the backend service is running.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -294,7 +313,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </div>
           <div style={{ color: 'var(--text-secondary)' }}>
             <div>Username: <strong style={{ color: 'var(--text-primary)' }}>admin</strong></div>
-            <div>Password: <strong style={{ color: 'var(--text-primary)' }}>ukaht-polar</strong></div>
+            <div>Password: <strong style={{ color: 'var(--text-primary)' }}>ukaht2026</strong></div>
           </div>
         </div>
       </div>
