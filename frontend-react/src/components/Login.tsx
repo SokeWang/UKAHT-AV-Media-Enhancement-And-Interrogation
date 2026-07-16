@@ -296,26 +296,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </button>
         </form>
 
-        {/* Credentials Helper Card */}
-        <div style={{
-          background: 'rgba(94, 168, 241, 0.05)',
-          border: '1px solid rgba(94, 168, 241, 0.12)',
-          borderRadius: '10px',
-          padding: '14px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          fontSize: '0.8rem',
-          lineHeight: '1.4'
-        }}>
-          <div style={{ fontWeight: 600, color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>🔑 Demo Access Credentials</span>
-          </div>
-          <div style={{ color: 'var(--text-secondary)' }}>
-            <div>Username: <strong style={{ color: 'var(--text-primary)' }}>admin</strong></div>
-            <div>Password: <strong style={{ color: 'var(--text-primary)' }}>ukaht2026</strong></div>
-          </div>
-        </div>
       </div>
     </div>
   );
