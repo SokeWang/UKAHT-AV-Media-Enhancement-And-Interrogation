@@ -30,6 +30,24 @@ git config --global core.autocrlf true
 git config --global core.autocrlf input
 ```
 
+### 3. 本地 Python 环境管理（可选）
+如果您需要在 Docker 容器外直接运行本地脚本或 Jupyter Notebook（如 `verify_baselines.py`、`train_adapter.ipynb`），我们强烈推荐使用 **uv**（一款极速的 Python 包管理器和解析器）来管理虚拟环境与依赖项：
+```bash
+# 1. 一键安装 uv（若未安装）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. 创建虚拟环境
+uv venv
+
+# 3. 激活虚拟 environment
+source .venv/bin/activate      # On macOS/Linux
+.venv\Scripts\activate         # On Windows
+
+# 4. 一键安装项目依赖项
+uv pip install -r backend/requirements.txt
+uv pip install -r algorithm/requirements.txt
+```
+
 ## 🚀 Docker Compose 一键部署 (唯一支持的运行方式)
 
 为保证跨平台依赖一致性、避免繁琐的环境配置，本系统**仅支持通过 Docker Compose 容器化部署**，不再保留本地手动安装部署方式。

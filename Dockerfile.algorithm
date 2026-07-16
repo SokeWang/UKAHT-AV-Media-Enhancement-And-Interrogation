@@ -13,8 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python dependencies first (layer caching)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY algorithm/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv pip install --system --no-cache -r requirements.txt
 
 # Pre-download CLIP model weights to bake them into the image cache
 RUN python -c "from transformers import CLIPModel, CLIPProcessor; CLIPModel.from_pretrained('openai/clip-vit-base-patch32'); CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32')"

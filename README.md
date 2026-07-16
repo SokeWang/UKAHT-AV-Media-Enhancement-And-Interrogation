@@ -30,6 +30,24 @@ git config --global core.autocrlf true
 git config --global core.autocrlf input
 ```
 
+### 3. Local Python Development (Optional)
+For local script verification or running Jupyter Notebooks (e.g., `verify_baselines.py`, `train_adapter.ipynb`) outside of Docker containers, we highly recommend using **uv** (a extremely fast Python package installer and resolver) to manage your virtual environments and dependencies:
+```bash
+# 1. Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Create virtual environment
+uv venv
+
+# 3. Activate the virtual environment
+source .venv/bin/activate      # On macOS/Linux
+.venv\Scripts\activate         # On Windows
+
+# 4. Install workspace dependencies
+uv pip install -r backend/requirements.txt
+uv pip install -r algorithm/requirements.txt
+```
+
 ## 🚀 Docker Compose Deployment (Recommended & Only Supported Method)
 
 The application is fully containerized. To ensure dependency alignment and prevent cross-platform configuration errors, **Docker Compose is the only supported deployment method**.
