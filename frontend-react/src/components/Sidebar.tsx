@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, PlusCircle, Database } from 'lucide-react';
+import { Search, PlusCircle, Database, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   onResetSearch: () => void;
@@ -7,6 +7,7 @@ interface SidebarProps {
   totalCount: number;
   originalCount: number;
   uploadedCount: number;
+  onLogout: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
@@ -14,7 +15,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenUpload,
   totalCount,
   originalCount,
-  uploadedCount
+  uploadedCount,
+  onLogout
 }) => {
   return (
     <aside className="glass-panel" style={{
@@ -114,6 +116,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Footer Info */}
       <div>
+        <button
+          onClick={onLogout}
+          className="btn btn-danger"
+          style={{
+            width: '100%',
+            justifyContent: 'center',
+            padding: '10px 14px',
+            fontSize: '0.85rem',
+            marginBottom: '15px'
+          }}
+        >
+          <LogOut size={14} />
+          <span>Log Out</span>
+        </button>
         <div style={{
           height: '1px',
           background: 'var(--border-color)',

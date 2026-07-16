@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { ChatAssistant } from './components/ChatAssistant';
 import { DetailDrawer } from './components/DetailDrawer';
 import { UploadModal } from './components/UploadModal';
+import { Login } from './components/Login';
 import { Search, Sparkles, RefreshCw } from 'lucide-react';
 
 interface Asset {
@@ -32,6 +33,11 @@ const API_BASE = import.meta.env.VITE_API_BASE !== undefined
 const generateSessionId = () => `sess_${Math.random().toString(36).substring(2, 10)}`;
 
 function App() {
+  // Authentication State
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('ukaht_auth') === 'true' || sessionStorage.getItem('ukaht_auth') === 'true';
+  });
+
   // Navigation & UI States
   const [isChatActive, setIsChatActive] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -138,6 +144,16 @@ function App() {
   const originalCount = allAssets.filter(a => a.data_source !== 'new_addition').length;
   const uploadedCount = allAssets.filter(a => a.data_source === 'new_addition').length;
 
+  const handleLogout = () => {
+    localStorage.removeItem('ukaht_auth');
+    sessionStorage.removeItem('ukaht_auth');
+    setIsLoggedIn(false);
+  };
+
+  if (!isLoggedIn) {
+    return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
+  }
+
   return (
     <div style={{
       display: 'flex',
@@ -153,6 +169,7 @@ function App() {
         totalCount={totalCount}
         originalCount={originalCount}
         uploadedCount={uploadedCount}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Workspace */}
