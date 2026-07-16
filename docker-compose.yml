@@ -63,7 +63,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # Backend API Gateway & Database (FastAPI + SQLite + React SPA Static Files)
+  # Backend API Gateway & Database (FastAPI + PostgreSQL + React SPA Static Files)
   # ---------------------------------------------------------------------------
   backend:
     build:
@@ -73,7 +73,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Mount source code for hot reloading (handles db.sqlite and static automatically)
+      # Mount source code for hot reloading
       - ./backend:/app/backend
       # Mount dataset directory (read-only) so paths inside the container match
       - ./UK Antarctic Heritage Trust Data:/data:ro
@@ -88,6 +88,29 @@ services:
       - UKAHT_LLM_API_KEY=ollama
       - UKAHT_S3_BUCKET=${UKAHT_S3_BUCKET}
       - UKAHT_S3_REGION=${UKAHT_S3_REGION}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=ukaht
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     depends_on:
       - algorithm
+      - db
     restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: ukaht-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=ukaht
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+

@@ -44,7 +44,8 @@ git config --global core.autocrlf input
 docker compose up --build -d
 ```
 
-该命令将自动下载基础镜像、构建服务并以守护进程模式启动后端及嵌入的 React 前端服务：
+该命令将自动下载基础镜像、构建服务并以守护进程模式启动 PostgreSQL 数据库、后端及嵌入的 React 前端服务：
+*   **PostgreSQL 数据库**：运行于 `ukaht-db` 容器的 `5432` 端口（数据持久化保存在本地 `./postgres_data` 中）。默认凭据：数据库为 `ukaht`，用户名/密码为 `postgres`/`postgres`。
 *   **后端 FastAPI 服务**：访问地址为 `http://localhost:8000`（API 交互文档地址：`http://localhost:8000/docs`）。
 *   **前端 React 界面**：在浏览器中打开 **`http://localhost:8000`** 即可开始使用智能搜推与标注功能（通过后端容器静态文件路由直接托管）。
 

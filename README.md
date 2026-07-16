@@ -44,7 +44,8 @@ From the repository root, run:
 docker compose up --build -d
 ```
 
-This will automatically build and launch the backend service containing the React frontend:
+This will automatically build and launch the PostgreSQL database and backend services:
+*   **PostgreSQL Database**: Running inside container `ukaht-db` at port `5432` (with data persisted locally in `./postgres_data`). Credentials: DB: `ukaht`, User/Pwd: `postgres`/`postgres`.
 *   **FastAPI Backend API**: Accessible at `http://localhost:8000` (docs at `http://localhost:8000/docs`).
 *   **React Frontend UI**: Open your browser at `http://localhost:8000` to use the portal (served directly via the backend container's static routing).
 

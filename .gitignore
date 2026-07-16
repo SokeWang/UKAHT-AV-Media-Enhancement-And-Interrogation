@@ -225,6 +225,7 @@ UK Antarctic Heritage Trust Data/
 backend/db.sqlite
 db.sqlite
 db.sqlite-journal
+postgres_data/
 
 # Node dependencies
 node_modules/
