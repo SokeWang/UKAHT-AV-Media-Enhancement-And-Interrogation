@@ -193,6 +193,109 @@ def api_login(req: LoginRequest):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.get("/api/assets/stats")
+def api_get_asset_stats():
+    """Return database counts (total, original, uploaded) quickly."""
+    try:
+        from backend.db.database import get_connection
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM assets")
+                total = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM assets WHERE data_source = 'new_addition'")
+                uploaded = cursor.fetchone()[0]
+                original = total - uploaded
+        return {
+            "code": 200,
+            "message": "success",
+            "data": {
+                "totalCount": total,
+                "originalCount": original,
+                "uploadedCount": uploaded
+            }
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/assets/recent")
+def api_get_recent_assets(offset: int = 0, limit: int = 6):
+    """Return paginated recently added assets, with S3 pre-signed URLs generated."""
+    try:
+        from backend.db.database import get_connection
+        from psycopg2.extras import RealDictCursor
+        from backend.retrieval.search import get_presigned_url
+
+        with get_connection() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                # Get all uploaded assets (new_addition)
+                cursor.execute(
+                    "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source FROM assets WHERE data_source = 'new_addition'"
+                )
+                uploaded = [dict(r) for r in cursor.fetchall()]
+                # Reverse to show latest first
+                uploaded.reverse()
+
+                num_uploaded = len(uploaded)
+
+                if offset >= num_uploaded:
+                    orig_offset = offset - num_uploaded
+                    cursor.execute(
+                        "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source "
+                        "FROM assets WHERE data_source != 'new_addition' OR data_source IS NULL "
+                        "ORDER BY id DESC LIMIT %s OFFSET %s",
+                        (limit, orig_offset)
+                    )
+                    recent = [dict(r) for r in cursor.fetchall()]
+                else:
+                    recent_uploaded = uploaded[offset : offset + limit]
+                    needed_original = limit - len(recent_uploaded)
+
+                    if needed_original > 0:
+                        cursor.execute(
+                            "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source "
+                            "FROM assets WHERE data_source != 'new_addition' OR data_source IS NULL "
+                            "ORDER BY id DESC LIMIT %s OFFSET 0",
+                            (needed_original,)
+                        )
+                        recent_original = [dict(r) for r in cursor.fetchall()]
+                    else:
+                        recent_original = []
+
+                    recent = recent_uploaded + recent_original
+
+        # Generate pre-signed S3 URLs only for the paginated items
+        for asset in recent:
+            url = asset["url"]
+            if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                asset["url"] = get_presigned_url(url)
+
+        return {"code": 200, "message": "success", "data": recent}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/assets/{asset_id}")
+def api_get_asset(asset_id: str):
+    """Return a single asset by its ID, with pre-signed S3 URL if applicable."""
+    try:
+        from backend.db.database import get_asset_by_id
+        asset = get_asset_by_id(asset_id)
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+
+        from backend.retrieval.search import get_presigned_url
+        url = asset["url"]
+        if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+            asset["url"] = get_presigned_url(url)
+
+        return {"code": 200, "message": "success", "data": asset}
+    except HTTPException as he:
+        raise he
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.get("/api/assets")
 def api_get_all_assets():
     """Return all assets in the database."""

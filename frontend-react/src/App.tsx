@@ -48,8 +48,10 @@ function App() {
   const [syncStatusText, setSyncStatusText] = useState('Sync S3 Database');
 
   // Search & Database Asset States
-  const [allAssets, setAllAssets] = useState<Asset[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [stats, setStats] = useState({ totalCount: 0, originalCount: 0, uploadedCount: 0 });
+  const [recentAssets, setRecentAssets] = useState<Asset[]>([]);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [hasMoreRecent, setHasMoreRecent] = useState(true);
   const [searchInput, setSearchInput] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
 
@@ -57,26 +59,73 @@ function App() {
   const [chatSessionId, setChatSessionId] = useState(generateSessionId());
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
-  // Initial load: Fetch all assets to count stats and showcase recently uploaded
+  // Initial load: Fetch stats and showcase recently added images
   useEffect(() => {
-    loadAllAssets();
+    loadStats();
+    loadRecentAssets(0, true);
   }, []);
 
-  const loadAllAssets = async () => {
-    setSearchLoading(true);
+  const loadStats = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/assets`);
+      const response = await fetch(`${API_BASE}/api/assets/stats`);
       if (response.ok) {
         const resJson = await response.json();
         if (resJson.code === 200) {
-          setAllAssets(resJson.data);
+          setStats(resJson.data);
         }
       }
     } catch (err) {
-      console.error('Error loading all assets:', err);
-    } finally {
-      setSearchLoading(false);
+      console.error('Error loading stats:', err);
     }
+  };
+
+  const loadRecentAssets = async (offset = 0, isInitial = false) => {
+    if (recentLoading) return;
+    setRecentLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/assets/recent?offset=${offset}&limit=6`);
+      if (response.ok) {
+        const resJson = await response.json();
+        if (resJson.code === 200) {
+          const fetched = resJson.data || [];
+          if (isInitial) {
+            setRecentAssets(fetched);
+          } else {
+            setRecentAssets(prev => [...prev, ...fetched]);
+          }
+          if (fetched.length < 6) {
+            setHasMoreRecent(false);
+          } else {
+            setHasMoreRecent(true);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error loading recent assets:', err);
+    } finally {
+      setRecentLoading(false);
+    }
+  };
+
+  const loadMoreRecentAssets = () => {
+    if (!recentLoading && hasMoreRecent) {
+      loadRecentAssets(recentAssets.length, false);
+    }
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const threshold = 100; // pixels from the bottom
+    const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < threshold;
+    if (isNearBottom && !recentLoading && hasMoreRecent) {
+      loadMoreRecentAssets();
+    }
+  };
+
+  const handleUploadSuccess = () => {
+    setIsUploadOpen(false);
+    loadStats();
+    loadRecentAssets(0, true);
   };
 
   const handleSyncDatabase = async () => {
@@ -122,7 +171,8 @@ function App() {
             setTimeout(() => {
               setSyncing(false);
               setSyncStatusText('Sync S3 Database');
-              loadAllAssets();
+              loadStats();
+              loadRecentAssets(0, true);
             }, 3000);
           } else if (status === 'error') {
             alert(`Sync Error: ${msg}`);
@@ -156,10 +206,23 @@ function App() {
     setActiveDrawerAsset(asset);
   };
 
-  const handleSelectAsset = (assetId: string) => {
-    const found = allAssets.find(a => a.id === assetId);
+  const handleSelectAsset = async (assetId: string) => {
+    const found = recentAssets.find(a => a.id === assetId);
     if (found) {
       setActiveDrawerAsset(found);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/assets/${assetId}`);
+      if (response.ok) {
+        const resJson = await response.json();
+        if (resJson.code === 200) {
+          setActiveDrawerAsset(resJson.data);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching asset details:', err);
     }
   };
 
@@ -183,19 +246,10 @@ function App() {
   };
 
   const handleAssetUpdate = (updatedAsset: Asset) => {
-    setAllAssets(prev => prev.map(a => a.id === updatedAsset.id ? updatedAsset : a));
+    setRecentAssets(prev => prev.map(a => a.id === updatedAsset.id ? updatedAsset : a));
     if (activeDrawerAsset && activeDrawerAsset.id === updatedAsset.id) {
       setActiveDrawerAsset(updatedAsset);
     }
-  };
-
-  // Get recently uploaded or recently added images (new_addition first, then latest)
-  const getRecentAssets = () => {
-    const uploaded = allAssets.filter(a => a.data_source === 'new_addition');
-    const original = allAssets.filter(a => a.data_source !== 'new_addition');
-    // Combine them with uploaded first (reversed to show latest first)
-    const combined = [...uploaded.reverse(), ...original.reverse()];
-    return combined.slice(0, 6);
   };
 
   const getImageUrl = (url: string) => {
@@ -205,9 +259,9 @@ function App() {
   };
 
   // Stats computation for sidebar
-  const totalCount = allAssets.length;
-  const originalCount = allAssets.filter(a => a.data_source !== 'new_addition').length;
-  const uploadedCount = allAssets.filter(a => a.data_source === 'new_addition').length;
+  const totalCount = stats.totalCount;
+  const originalCount = stats.originalCount;
+  const uploadedCount = stats.uploadedCount;
 
   const handleLogout = () => {
     localStorage.removeItem('ukaht_auth');
@@ -241,15 +295,18 @@ function App() {
       />
 
       {/* Main Content Workspace */}
-      <main style={{
-        flex: 1,
-        height: '100vh',
-        overflowY: 'auto',
-        padding: '24px 30px',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative'
-      }}>
+      <main 
+        onScroll={handleScroll}
+        style={{
+          flex: 1,
+          height: '100vh',
+          overflowY: 'auto',
+          padding: '24px 30px',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative'
+        }}
+      >
         {!isChatActive ? (
           /* =========================================================================
              1. Landing Page State: Big central search + Recently Added Gallery
@@ -325,52 +382,64 @@ function App() {
               <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '16px', fontWeight: 600 }}>
                 Recently Added Images
               </h3>
-              {searchLoading ? (
+              {recentLoading && recentAssets.length === 0 ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-                  <RefreshCw size={16} className="animate-spin" /> Loading archive...
+                  <RefreshCw size={16} style={{ animation: 'spin 1.5s linear infinite' }} /> Loading archive...
                 </div>
-              ) : allAssets.length === 0 ? (
+              ) : recentAssets.length === 0 && !recentLoading ? (
                 <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem' }}>
                   No archive images found. Try uploading some!
                 </div>
               ) : (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '20px'
-                }}>
-                  {getRecentAssets().map((asset) => (
-                    <div
-                      key={asset.id}
-                      onClick={() => handleQuickImageClick(asset)}
-                      className="glass-panel glass-panel-interactive animate-slide-up"
-                      style={{
-                        overflow: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: '220px'
-                      }}
-                    >
-                      <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden' }}>
-                        <img
-                          src={getImageUrl(asset.url)}
-                          alt={asset.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      </div>
-                      <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {asset.title}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '20px'
+                  }}>
+                    {recentAssets.map((asset) => (
+                      <div
+                        key={asset.id}
+                        onClick={() => handleQuickImageClick(asset)}
+                        className="glass-panel glass-panel-interactive animate-slide-up"
+                        style={{
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '220px'
+                        }}
+                      >
+                        <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden' }}>
+                          <img
+                            src={getImageUrl(asset.url)}
+                            alt={asset.title}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
-                          <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
-                            {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
-                          </span>
+                        <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {asset.title}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
+                            <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
+                              {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
+                            </span>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                  {recentLoading && (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+                      <RefreshCw size={24} style={{ color: 'var(--accent-cyan)', animation: 'spin 1.5s linear infinite' }} />
                     </div>
-                  ))}
+                  )}
+                  {!hasMoreRecent && recentAssets.length > 0 && (
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', padding: '10px' }}>
+                      All assets loaded
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -414,7 +483,7 @@ function App() {
         <UploadModal 
           isOpen={isUploadOpen}
           onClose={() => setIsUploadOpen(false)}
-          onUploadSuccess={loadAllAssets}
+          onUploadSuccess={handleUploadSuccess}
           apiBase={API_BASE}
         />
       </main>
