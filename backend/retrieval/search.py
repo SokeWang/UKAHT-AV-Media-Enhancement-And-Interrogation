@@ -143,21 +143,6 @@ def semantic_search(
     if not matched_rows:
         return []
 
-    if not query.strip():
-        # Return all matched assets with score 1.0 when query is empty
-        return [_row_to_result(r, 1.0) for r in matched_rows]
-
-    # Retrieve and adapt query embedding
-    query_emb = get_text_embedding_from_algo(query)
-    if adapter:
-        adapter_path = adapter if isinstance(adapter, str) else ""
-        query_emb = apply_adapter_from_algo(query_emb, adapter_path)
-    query_emb = query_emb.astype("float32").reshape(1, -1)
-
-    # Build the FAISS Index
-    # Since query and asset embeddings are L2-normalized, IndexFlatIP is equivalent to cosine similarity.
-    index = faiss.IndexFlatIP(512)
-
     # Prepare database embeddings
     raw_embeddings = []
     for r in matched_rows:
@@ -169,19 +154,58 @@ def semantic_search(
         adapter_path = adapter if isinstance(adapter, str) else ""
         embeddings_matrix = apply_adapter_from_algo(embeddings_matrix, adapter_path)
 
-    index.add(embeddings_matrix)
+    if not query.strip():
+        scores_arr = [1.0] * len(matched_rows)
+        indices_arr = list(range(len(matched_rows)))
+    else:
+        # Retrieve and adapt query embedding
+        query_emb = get_text_embedding_from_algo(query)
+        if adapter:
+            adapter_path = adapter if isinstance(adapter, str) else ""
+            query_emb = apply_adapter_from_algo(query_emb, adapter_path)
+        query_emb = query_emb.astype("float32").reshape(1, -1)
 
-    # Query FAISS index
-    k = len(matched_rows)
-    scores, indices = index.search(query_emb, k)
+        # Build the FAISS Index
+        # Since query and asset embeddings are L2-normalized, IndexFlatIP is equivalent to cosine similarity.
+        index = faiss.IndexFlatIP(512)
+        index.add(embeddings_matrix)
 
-    # Reconstruct sorted result list
+        # Query FAISS index
+        k = len(matched_rows)
+        scores_res, indices_res = index.search(query_emb, k)
+        scores_arr = scores_res[0]
+        indices_arr = indices_res[0]
+
+    # Reconstruct sorted result list with visual stacking (grouping highly similar items)
     results = []
-    for score, idx in zip(scores[0], indices[0]):
+    primary_embeddings = []
+    primary_indices = []
+    
+    # We define a threshold for high visual similarity, e.g. 0.85
+    SIMILARITY_THRESHOLD = 0.85
+
+    for score, idx in zip(scores_arr, indices_arr):
         if idx == -1:
             continue
         row = matched_rows[idx]
-        results.append(_row_to_result(row, float(score)))
+        emb = embeddings_matrix[idx]
+        
+        is_stacked = False
+        for p_idx, p_emb in zip(primary_indices, primary_embeddings):
+            sim = float(np.dot(emb, p_emb))
+            if sim >= SIMILARITY_THRESHOLD:
+                if "stacked_assets" not in results[p_idx]:
+                    results[p_idx]["stacked_assets"] = []
+                results[p_idx]["stacked_assets"].append(_row_to_result(row, float(score)))
+                is_stacked = True
+                break
+                
+        if not is_stacked:
+            res = _row_to_result(row, float(score))
+            res["stacked_assets"] = []
+            results.append(res)
+            primary_embeddings.append(emb)
+            primary_indices.append(len(results) - 1)
 
     return results
 

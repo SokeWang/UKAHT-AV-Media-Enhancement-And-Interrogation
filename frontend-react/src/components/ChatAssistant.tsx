@@ -28,6 +28,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [expandedStacks, setExpandedStacks] = useState<{ [key: string]: boolean }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new messages
@@ -277,88 +278,214 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({
                 width: '100%'
               }}>
                 {msg.assets.slice(0, 8).map((asset) => (
-                  <div 
-                    key={asset.id} 
-                    className="glass-panel"
-                    onClick={() => onSelectAsset(asset.id)}
-                    style={{
-                      padding: '6px',
-                      borderRadius: '8px',
-                      background: '#ffffff',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                      transition: 'all var(--transition-fast)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      border: '1px solid var(--border-color)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--accent-blue)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px var(--accent-glow)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border-color)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
-                    }}
-                  >
-                    <div style={{ height: '95px', backgroundColor: '#050a14', overflow: 'hidden', borderRadius: '6px', marginBottom: '6px', position: 'relative' }}>
-                      <img 
-                        src={getImageUrl(asset.url)} 
-                        alt={asset.title} 
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                      {asset.score !== undefined && (
+                  <div key={asset.id} style={{ position: 'relative' }}>
+                    {/* Visual Card Stacking Offset Layers */}
+                    {asset.stacked_assets && asset.stacked_assets.length > 0 && (
+                      <>
                         <div style={{
                           position: 'absolute',
-                          bottom: '4px',
-                          right: '4px',
-                          background: 'rgba(5, 10, 20, 0.8)',
-                          padding: '1px 4px',
-                          borderRadius: '3px',
-                          fontSize: '0.6rem',
-                          color: 'var(--accent-cyan)'
-                        }}>
-                          S: {asset.score.toFixed(2)}
-                        </div>
+                          top: '6px',
+                          left: '6px',
+                          right: '-6px',
+                          bottom: '-6px',
+                          background: 'rgba(5, 10, 20, 0.4)',
+                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                          borderRadius: '8px',
+                          zIndex: 1
+                        }} />
+                        <div style={{
+                          position: 'absolute',
+                          top: '3px',
+                          left: '3px',
+                          right: '-3px',
+                          bottom: '-3px',
+                          background: 'rgba(10, 18, 36, 0.6)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '8px',
+                          zIndex: 2
+                        }} />
+                      </>
+                    )}
+
+                    {/* Main Card */}
+                    <div 
+                      className="glass-panel"
+                      onClick={() => onSelectAsset(asset.id)}
+                      style={{
+                        zIndex: 3,
+                        position: 'relative',
+                        padding: '6px',
+                        borderRadius: '8px',
+                        background: '#ffffff',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                        transition: 'all var(--transition-fast)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        border: '1px solid var(--border-color)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--accent-blue)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px var(--accent-glow)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-color)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
+                      }}
+                    >
+                      <div style={{ height: '95px', backgroundColor: '#050a14', overflow: 'hidden', borderRadius: '6px', marginBottom: '6px', position: 'relative' }}>
+                        <img 
+                          src={getImageUrl(asset.url)} 
+                          alt={asset.title} 
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                        {asset.score !== undefined && (
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '4px',
+                            right: '4px',
+                            background: 'rgba(5, 10, 20, 0.8)',
+                            padding: '1px 4px',
+                            borderRadius: '3px',
+                            fontSize: '0.6rem',
+                            color: 'var(--accent-cyan)'
+                          }}>
+                            S: {asset.score.toFixed(2)}
+                          </div>
+                        )}
+                        {/* Stacked Indicator Badge */}
+                        {asset.stacked_assets && asset.stacked_assets.length > 0 && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '4px',
+                            left: '4px',
+                            background: 'rgba(0, 229, 255, 0.95)',
+                            color: '#050a14',
+                            padding: '2px 5px',
+                            borderRadius: '3px',
+                            fontSize: '0.6rem',
+                            fontWeight: 700,
+                            boxShadow: '0 2px 5px rgba(0, 229, 255, 0.3)'
+                          }}>
+                            +{asset.stacked_assets.length + 1} Stacked
+                          </div>
+                        )}
+                      </div>
+                      <div style={{
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        color: 'var(--text-primary)',
+                        padding: '0 2px',
+                        marginBottom: '2px'
+                      }}>
+                        {asset.title}
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '0.65rem',
+                        color: 'var(--text-muted)',
+                        padding: '0 2px'
+                      }}>
+                        <span>{asset.category || 'Archive'}</span>
+                        {asset.base_code && (
+                          <span style={{ 
+                            background: 'rgba(94, 168, 241, 0.1)', 
+                            color: 'var(--accent-blue)', 
+                            padding: '1px 4px', 
+                            borderRadius: '3px',
+                            fontWeight: '600'
+                          }}>
+                            Base {asset.base_code}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Toggle Expand Stack Button */}
+                      {asset.stacked_assets && asset.stacked_assets.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedStacks(prev => ({ ...prev, [asset.id]: !prev[asset.id] }));
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--accent-cyan)',
+                            fontSize: '0.65rem',
+                            cursor: 'pointer',
+                            padding: '2px 0',
+                            textAlign: 'left',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginTop: '6px',
+                            textDecoration: 'underline'
+                          }}
+                        >
+                          {expandedStacks[asset.id] ? 'Hide Similar ↑' : `Show ${asset.stacked_assets.length} Similar ↓`}
+                        </button>
                       )}
-                    </div>
-                    <div style={{
-                      fontWeight: 600,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      color: 'var(--text-primary)',
-                      padding: '0 2px',
-                      marginBottom: '2px'
-                    }}>
-                      {asset.title}
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: '0.65rem',
-                      color: 'var(--text-muted)',
-                      padding: '0 2px'
-                    }}>
-                      <span>{asset.category || 'Archive'}</span>
-                      {asset.base_code && (
-                        <span style={{ 
-                          background: 'rgba(94, 168, 241, 0.1)', 
-                          color: 'var(--accent-blue)', 
-                          padding: '1px 4px', 
-                          borderRadius: '3px',
-                          fontWeight: '600'
+
+                      {/* Stacked Sub-Assets List */}
+                      {expandedStacks[asset.id] && asset.stacked_assets && (
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          marginTop: '6px',
+                          paddingTop: '6px',
+                          borderTop: '1px solid var(--border-color)'
                         }}>
-                          Base {asset.base_code}
-                        </span>
+                          {asset.stacked_assets.map((subAsset: any) => (
+                            <div 
+                              key={subAsset.id} 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectAsset(subAsset.id);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: 'rgba(5, 10, 20, 0.4)',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                border: '1px solid transparent'
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent-cyan)'}
+                              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
+                            >
+                              <img 
+                                src={getImageUrl(subAsset.url)} 
+                                alt={subAsset.title}
+                                style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '3px' }}
+                              />
+                              <div style={{
+                                fontSize: '0.65rem',
+                                fontWeight: 600,
+                                color: 'var(--text-primary)',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flex: 1
+                              }}>
+                                {subAsset.title}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
