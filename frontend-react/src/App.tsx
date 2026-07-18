@@ -54,6 +54,46 @@ function App() {
   const [hasMoreRecent, setHasMoreRecent] = useState(true);
   const [searchInput, setSearchInput] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
+  const [groupBy, setGroupBy] = useState<'none' | 'folder' | 'year' | 'base' | 'category'>('none');
+
+  const getGroupedAssets = () => {
+    if (groupBy === 'none') return null;
+
+    const groups: { [key: string]: Asset[] } = {};
+    recentAssets.forEach((asset) => {
+      let key = 'Other';
+      if (groupBy === 'folder') {
+        if (asset.url) {
+          try {
+            const decoded = decodeURIComponent(asset.url);
+            const pathParts = decoded.split('?')[0].split('/');
+            if (pathParts.length > 1) {
+              const parent = pathParts[pathParts.length - 2];
+              if (parent && !parent.includes('.com') && !parent.startsWith('http') && parent !== 'uploads' && parent !== 'assets') {
+                key = parent.replace(/_/g, ' ').replace(/-/g, ' ');
+              } else {
+                key = 'Root / General Uploads';
+              }
+            }
+          } catch (e) {
+            key = 'Root / General Uploads';
+          }
+        }
+      } else if (groupBy === 'year') {
+        key = asset.shooting_year ? `Year: ${asset.shooting_year}` : 'Unknown Year';
+      } else if (groupBy === 'base') {
+        key = asset.base_code ? `Base ${asset.base_code.toUpperCase()}` : 'Unknown Base';
+      } else if (groupBy === 'category') {
+        key = asset.category || 'Uncategorized';
+      }
+
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(asset);
+    });
+    return groups;
+  };
 
   // Conversational Assistant States
   const [chatSessionId, setChatSessionId] = useState(generateSessionId());
@@ -379,9 +419,56 @@ function App() {
 
             {/* Showcase Gallery: Recently Uploaded Images */}
             <div style={{ marginTop: '20px' }}>
-              <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '16px', fontWeight: 600 }}>
-                Recently Added Images
-              </h3>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', margin: 0, fontWeight: 600 }}>
+                  Recently Added Images
+                </h3>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  padding: '4px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  fontSize: '0.8rem'
+                }}>
+                  <span style={{ color: 'var(--text-muted)', paddingLeft: '8px' }}>Group by:</span>
+                  {[
+                    { id: 'none', label: 'None' },
+                    { id: 'folder', label: 'Folder' },
+                    { id: 'year', label: 'Year' },
+                    { id: 'base', label: 'Base' },
+                    { id: 'category', label: 'Category' }
+                  ].map(opt => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setGroupBy(opt.id as any)}
+                      style={{
+                        background: groupBy === opt.id ? 'var(--accent-blue)' : 'transparent',
+                        color: groupBy === opt.id ? '#ffffff' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        fontWeight: groupBy === opt.id ? 600 : 400,
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {recentLoading && recentAssets.length === 0 ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
                   <RefreshCw size={16} style={{ animation: 'spin 1.5s linear infinite' }} /> Loading archive...
@@ -392,44 +479,116 @@ function App() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '20px'
-                  }}>
-                    {recentAssets.map((asset) => (
-                      <div
-                        key={asset.id}
-                        onClick={() => handleQuickImageClick(asset)}
-                        className="glass-panel glass-panel-interactive animate-slide-up"
-                        style={{
-                          overflow: 'hidden',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '220px'
-                        }}
-                      >
-                        <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden' }}>
-                          <img
-                            src={getImageUrl(asset.url)}
-                            alt={asset.title}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
+                  {groupBy === 'none' ? (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: '20px'
+                    }}>
+                      {recentAssets.map((asset) => (
+                        <div
+                          key={asset.id}
+                          onClick={() => handleQuickImageClick(asset)}
+                          className="glass-panel glass-panel-interactive animate-slide-up"
+                          style={{
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            height: '220px'
+                          }}
+                        >
+                          <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden' }}>
+                            <img
+                              src={getImageUrl(asset.url)}
+                              alt={asset.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                          <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {asset.title}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
+                              <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
+                                {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                          <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {asset.title}
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
-                            <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
-                              {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
-                            </span>
-                          </div>
+                      ))}
+                    </div>
+                  ) : (
+                    Object.entries(getGroupedAssets() || {}).map(([groupName, assets]) => (
+                      <div key={groupName} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          marginTop: '8px',
+                          borderBottom: '1px solid var(--border-color)',
+                          paddingBottom: '8px'
+                        }}>
+                          <span style={{
+                            width: '4px',
+                            height: '16px',
+                            background: 'var(--accent-cyan)',
+                            borderRadius: '2px'
+                          }}></span>
+                          <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                            {groupName}
+                          </span>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--text-muted)',
+                            background: 'rgba(255,255,255,0.06)',
+                            padding: '2px 6px',
+                            borderRadius: '4px'
+                          }}>
+                            {assets.length} items
+                          </span>
+                        </div>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
+                          gap: '20px'
+                        }}>
+                          {assets.map((asset) => (
+                            <div
+                              key={asset.id}
+                              onClick={() => handleQuickImageClick(asset)}
+                              className="glass-panel glass-panel-interactive animate-slide-up"
+                              style={{
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: '220px'
+                              }}
+                            >
+                              <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden' }}>
+                                <img
+                                  src={getImageUrl(asset.url)}
+                                  alt={asset.title}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                              </div>
+                              <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {asset.title}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                                  <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
+                                  <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
+                                    {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  )}
                   {recentLoading && (
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
                       <RefreshCw size={24} style={{ color: 'var(--accent-cyan)', animation: 'spin 1.5s linear infinite' }} />
