@@ -956,6 +956,239 @@ def api_reset_session(session_id: str):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+def _project_embeddings_pca(embeddings: np.ndarray) -> np.ndarray:
+    if len(embeddings) < 2:
+        return np.zeros((len(embeddings), 2))
+    mean = np.mean(embeddings, axis=0)
+    centered = embeddings - mean
+    cov = np.cov(centered, rowvar=False)
+    evals, evecs = np.linalg.eigh(cov)
+    idx = np.argsort(evals)[::-1]
+    evecs = evecs[:, idx]
+    top2_evecs = evecs[:, :2]
+    projected = np.dot(centered, top2_evecs)
+    p_min = np.min(projected, axis=0)
+    p_max = np.max(projected, axis=0)
+    denom = p_max - p_min
+    denom[denom == 0] = 1.0
+    projected = -100.0 + 200.0 * (projected - p_min) / denom
+    return projected
+
+
+@app.get("/api/evaluate")
+def api_evaluate_dashboard():
+    """
+    Run evaluation on the golden test set and return baseline vs adapted metrics.
+    Also returns query details for the table.
+    """
+    try:
+        from backend.evaluation.evaluate import load_golden_test_set, DEFAULT_GOLDEN_PATH, _average_precision, _dcg
+        from backend.retrieval.search import semantic_search
+        
+        golden_queries = []
+        if os.path.exists(DEFAULT_GOLDEN_PATH):
+            try:
+                with open(DEFAULT_GOLDEN_PATH, "r", encoding="utf-8") as f:
+                    golden_queries = json.load(f)
+            except Exception:
+                pass
+        
+        if not golden_queries:
+            from backend.db.database import get_connection
+            from psycopg2.extras import RealDictCursor
+            try:
+                with get_connection() as conn:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                        cursor.execute("SELECT asset_id, caption FROM golden_test_set")
+                        db_rows = cursor.fetchall()
+                        for row in db_rows:
+                            golden_queries.append({
+                                "asset_id": row["asset_id"],
+                                "caption": row["caption"],
+                                "query": row["caption"],
+                                "relevant_ids": [row["asset_id"]]
+                            })
+            except Exception:
+                pass
+
+        if not golden_queries:
+            return {
+                "code": 200,
+                "message": "success",
+                "data": {
+                    "has_golden": False,
+                    "queries_count": 0,
+                    "adapter_loaded": False,
+                    "baseline": {"map": 0, "ndcg": 0},
+                    "adapted": {"map": 0, "ndcg": 0},
+                    "queries": []
+                }
+            }
+
+        adapter_dir = os.path.join(BASE_DIR, "static", "models")
+        adapter_path = os.path.join(adapter_dir, "adapter.pth")
+        adapter_loaded = os.path.exists(adapter_path)
+        
+        baseline_fn = lambda q: semantic_search(q, adapter=None)
+        adapted_fn = lambda q: semantic_search(q, adapter=adapter_path if adapter_loaded else None)
+        
+        queries_detail = []
+        for item in golden_queries:
+            q = item["query"]
+            relevant = set(item["relevant_ids"])
+            
+            base_res = baseline_fn(q)
+            base_ranked = [r["id"] for r in base_res]
+            base_ap = _average_precision(base_ranked, relevant)
+            
+            ideal_dcg = _dcg(list(relevant)[:10], relevant)
+            base_ndcg = _dcg(base_ranked[:10], relevant) / ideal_dcg if ideal_dcg > 0 else 0.0
+            
+            adapt_res = adapted_fn(q)
+            adapt_ranked = [r["id"] for r in adapt_res]
+            adapt_ap = _average_precision(adapt_ranked, relevant)
+            adapt_ndcg = _dcg(adapt_ranked[:10], relevant) / ideal_dcg if ideal_dcg > 0 else 0.0
+            
+            base_rank = -1
+            for rank, r_id in enumerate(base_ranked, start=1):
+                if r_id in relevant:
+                    base_rank = rank
+                    break
+            
+            adapt_rank = -1
+            for rank, r_id in enumerate(adapt_ranked, start=1):
+                if r_id in relevant:
+                    adapt_rank = rank
+                    break
+            
+            queries_detail.append({
+                "query": q,
+                "relevant_count": len(relevant),
+                "baseline": {
+                    "ap": round(base_ap, 4),
+                    "ndcg": round(base_ndcg, 4),
+                    "first_rank": base_rank
+                },
+                "adapted": {
+                    "ap": round(adapt_ap, 4),
+                    "ndcg": round(adapt_ndcg, 4),
+                    "first_rank": adapt_rank
+                }
+            })
+            
+        base_map = float(np.mean([q["baseline"]["ap"] for q in queries_detail])) if queries_detail else 0.0
+        base_ndcg = float(np.mean([q["baseline"]["ndcg"] for q in queries_detail])) if queries_detail else 0.0
+        
+        adapt_map = float(np.mean([q["adapted"]["ap"] for q in queries_detail])) if queries_detail else 0.0
+        adapt_ndcg = float(np.mean([q["adapted"]["ndcg"] for q in queries_detail])) if queries_detail else 0.0
+        
+        return {
+            "code": 200,
+            "message": "success",
+            "data": {
+                "has_golden": True,
+                "queries_count": len(golden_queries),
+                "adapter_loaded": adapter_loaded,
+                "baseline": {
+                    "map": round(base_map, 4),
+                    "ndcg": round(base_ndcg, 4)
+                },
+                "adapted": {
+                    "map": round(adapt_map, 4),
+                    "ndcg": round(adapt_ndcg, 4)
+                },
+                "queries": queries_detail
+            }
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/evaluate/projection")
+def api_evaluate_projection():
+    """
+    Project all database asset embeddings into 2D spaces for baseline and adapted models
+    using zero-dependency NumPy PCA.
+    """
+    try:
+        from backend.db.database import get_all_assets_with_embeddings
+        from backend.retrieval.search import apply_adapter_from_algo, get_presigned_url
+        
+        rows = get_all_assets_with_embeddings()
+        
+        valid_assets = []
+        raw_embs = []
+        for r in rows:
+            if r.get("embedding") is not None:
+                try:
+                    emb = np.frombuffer(r["embedding"], dtype=np.float32)
+                    if len(emb) == 512:
+                        raw_embs.append(emb)
+                        valid_assets.append(r)
+                except Exception:
+                    pass
+                    
+        if not raw_embs:
+            return {
+                "code": 200,
+                "message": "success",
+                "data": {
+                    "adapter_loaded": False,
+                    "points": []
+                }
+            }
+            
+        baseline_matrix = np.vstack(raw_embs).astype("float32")
+        baseline_proj = _project_embeddings_pca(baseline_matrix)
+        
+        adapter_dir = os.path.join(BASE_DIR, "static", "models")
+        adapter_path = os.path.join(adapter_dir, "adapter.pth")
+        adapter_loaded = os.path.exists(adapter_path)
+        
+        if adapter_loaded:
+            try:
+                adapted_matrix = apply_adapter_from_algo(baseline_matrix, adapter_path)
+                adapted_proj = _project_embeddings_pca(adapted_matrix)
+            except Exception as e:
+                print(f"[PROJECTION WARN] Failed to apply adapter: {e}")
+                adapted_proj = baseline_proj
+        else:
+            adapted_proj = baseline_proj
+            
+        points = []
+        for i, row in enumerate(valid_assets):
+            url = row["url"]
+            if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                url = get_presigned_url(url)
+                
+            points.append({
+                "id": row["id"],
+                "title": row["title"] or "Untitled",
+                "category": row["category"] or "Uncategorized",
+                "url": url,
+                "baseline": {
+                    "x": float(baseline_proj[i, 0]),
+                    "y": float(baseline_proj[i, 1])
+                },
+                "adapted": {
+                    "x": float(adapted_proj[i, 0]),
+                    "y": float(adapted_proj[i, 1])
+                }
+            })
+            
+        return {
+            "code": 200,
+            "message": "success",
+            "data": {
+                "adapter_loaded": adapter_loaded,
+                "points": points
+            }
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+
 # ---------------------------------------------------------------------------
 # Serve React SPA static files (Single Origin Deployment)
 # ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { ChatAssistant } from './components/ChatAssistant';
 import { DetailDrawer } from './components/DetailDrawer';
 import { UploadModal } from './components/UploadModal';
 import { Login } from './components/Login';
+import Dashboard from './components/Dashboard';
 import { Search, Sparkles, RefreshCw } from 'lucide-react';
 
 interface Asset {
@@ -41,6 +42,7 @@ function App() {
   // Navigation & UI States
   const [isChatActive, setIsChatActive] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [activeDrawerAsset, setActiveDrawerAsset] = useState<Asset | null>(null);
 
   // Synchronization States
@@ -325,6 +327,7 @@ function App() {
       <Sidebar 
         onResetSearch={handleResetSearch}
         onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenDashboard={() => setIsDashboardOpen(true)}
         totalCount={totalCount}
         originalCount={originalCount}
         uploadedCount={uploadedCount}
@@ -645,6 +648,15 @@ function App() {
           onUploadSuccess={handleUploadSuccess}
           apiBase={API_BASE}
         />
+
+        {/* Deep Learning Evaluation Dashboard */}
+        {isDashboardOpen && (
+          <Dashboard 
+            apiBase={API_BASE}
+            onSelectAsset={handleSelectAsset}
+            onClose={() => setIsDashboardOpen(false)}
+          />
+        )}
       </main>
     </div>
   );

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Search, PlusCircle, Database, LogOut, RefreshCw } from 'lucide-react';
+import { Search, PlusCircle, Database, LogOut, RefreshCw, Sparkles } from 'lucide-react';
 
 interface SidebarProps {
   onResetSearch: () => void;
   onOpenUpload: () => void;
+  onOpenDashboard: () => void;
   totalCount: number;
   originalCount: number;
   uploadedCount: number;
@@ -16,6 +17,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ 
   onResetSearch, 
   onOpenUpload,
+  onOpenDashboard,
   totalCount,
   originalCount,
   uploadedCount,
@@ -88,6 +90,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <PlusCircle size={18} style={{ color: 'var(--accent-blue)' }} />
             <span>Upload New Image</span>
+          </button>
+
+          <button
+            onClick={onOpenDashboard}
+            className="btn btn-secondary"
+            style={{
+              justifyContent: 'flex-start',
+              width: '100%',
+              padding: '14px 18px'
+            }}
+          >
+            <Sparkles size={18} style={{ color: 'var(--accent-cyan)' }} />
+            <span>Model Evaluation</span>
           </button>
 
           <button
