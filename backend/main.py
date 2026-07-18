@@ -319,7 +319,26 @@ def api_get_recent_assets(offset: int = 0, limit: int = 6):
                     if sub_url.startswith("http") and (".s3." in sub_url or "s3.amazonaws.com" in sub_url):
                         sub_asset["url"] = get_presigned_url(sub_url)
 
-        return {"code": 200, "message": "success", "data": recent_stacked}
+        # Calculate total available database rows for has_more computation
+        total_original = 0
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT COUNT(*) FROM assets WHERE data_source != 'new_addition' OR data_source IS NULL"
+                )
+                total_original = cursor.fetchone()[0]
+
+        total_available = num_uploaded + total_original
+        next_offset = offset + len(recent)
+        has_more = next_offset < total_available
+
+        return {
+            "code": 200,
+            "message": "success",
+            "data": recent_stacked,
+            "next_offset": next_offset,
+            "has_more": has_more
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

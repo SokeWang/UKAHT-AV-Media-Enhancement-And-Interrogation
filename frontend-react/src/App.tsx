@@ -55,6 +55,7 @@ function App() {
   const [recentAssets, setRecentAssets] = useState<Asset[]>([]);
   const [recentLoading, setRecentLoading] = useState(false);
   const [hasMoreRecent, setHasMoreRecent] = useState(true);
+  const [nextOffset, setNextOffset] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const [groupBy, setGroupBy] = useState<'none' | 'folder' | 'year' | 'base' | 'category'>('none');
@@ -298,11 +299,8 @@ function App() {
           } else {
             setRecentAssets(prev => [...prev, ...fetched]);
           }
-          if (fetched.length < 6) {
-            setHasMoreRecent(false);
-          } else {
-            setHasMoreRecent(true);
-          }
+          setNextOffset(resJson.next_offset);
+          setHasMoreRecent(resJson.has_more);
         }
       }
     } catch (err) {
@@ -314,7 +312,7 @@ function App() {
 
   const loadMoreRecentAssets = () => {
     if (!recentLoading && hasMoreRecent) {
-      loadRecentAssets(recentAssets.length, false);
+      loadRecentAssets(nextOffset, false);
     }
   };
 
