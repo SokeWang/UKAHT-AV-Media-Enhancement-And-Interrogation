@@ -630,28 +630,7 @@ async def api_upload_and_index(file: UploadFile = File(...)):
             emb_list = embed_resp.json()["data"]["embedding"]
             emb = np.array(emb_list, dtype=np.float32)
 
-            # Check for duplicate image in the database
-            from backend.db.database import check_duplicate_image, get_asset_by_id
             emb_bytes = emb.astype("float32").tobytes()
-            duplicate_id = check_duplicate_image(emb_bytes)
-            if duplicate_id:
-                try:
-                    os.remove(file_path)
-                except Exception:
-                    pass
-                existing = get_asset_by_id(duplicate_id)
-                return {
-                    "code": 200,
-                    "message": "success",
-                    "data": {
-                        "status": "already_exists",
-                        "id": existing["id"],
-                        "url": existing["url"],
-                        "title": existing["title"],
-                        "caption": existing["description"]
-                    }
-                }
-
             asset_id = f"up_{uuid.uuid4().hex[:8]}"
             title = file.filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
 
@@ -740,14 +719,27 @@ def perform_s3_sync():
 
         all_keys = scan_images_s3(s3_bucket, region=s3_region)
 
+        import urllib.parse
         all_assets = get_all_assets()
-        existing_urls = {asset["url"] for asset in all_assets if asset.get("url")}
+        existing_keys = set()
+        for asset in all_assets:
+            url = asset.get("url")
+            if url:
+                try:
+                    decoded_url = urllib.parse.unquote(url)
+                    parsed = urllib.parse.urlparse(decoded_url)
+                    path = parsed.path.lstrip("/")
+                    if path.startswith(f"{s3_bucket}/"):
+                        path = path[len(s3_bucket) + 1:]
+                    existing_keys.add(path)
+                except Exception:
+                    pass
 
         missing_keys = []
         region_str = f".{s3_region}" if s3_region else ""
         for key in all_keys:
-            s3_url = f"https://{s3_bucket}.s3{region_str}.amazonaws.com/{key}"
-            if s3_url not in existing_urls:
+            if key not in existing_keys:
+                s3_url = f"https://{s3_bucket}.s3{region_str}.amazonaws.com/{key}"
                 missing_keys.append((key, s3_url))
 
         total_missing = len(missing_keys)
@@ -808,16 +800,6 @@ def perform_s3_sync():
 
             for idx, (key, caption, emb, url) in enumerate(zip(valid_batch_keys, captions, embeddings, valid_s3_urls)):
                 emb_bytes = emb.astype("float32").tobytes()
-                duplicate_id = check_duplicate_image(emb_bytes)
-                if duplicate_id:
-                    try:
-                        os.remove(local_paths[idx])
-                    except Exception:
-                        pass
-                    with _sync_lock:
-                        _sync_status["processed"] += 1
-                    continue
-
                 asset_id = f"ukaht_{uuid.uuid4().hex[:10]}"
                 title_stem = Path(key).stem
                 title = title_stem.replace("_", " ").replace("-", " ").title()
