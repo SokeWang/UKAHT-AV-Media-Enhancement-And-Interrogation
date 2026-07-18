@@ -71,8 +71,9 @@ def get_presigned_url(url: str) -> str:
     if not match:
         return url
     
+    import urllib.parse
     bucket = match.group(1)
-    key = match.group(2)
+    key = urllib.parse.unquote(match.group(2))
     
     try:
         s3_region = os.getenv("UKAHT_S3_REGION")
