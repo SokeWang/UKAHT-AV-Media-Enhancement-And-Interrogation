@@ -19,6 +19,7 @@ interface Asset {
   copyright?: string;
   data_source?: string;
   score?: number;
+  stacked_assets?: Asset[];
 }
 
 interface ChatMessage {
@@ -57,6 +58,168 @@ function App() {
   const [searchInput, setSearchInput] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const [groupBy, setGroupBy] = useState<'none' | 'folder' | 'year' | 'base' | 'category'>('none');
+  const [expandedRecentStacks, setExpandedRecentStacks] = useState<{ [key: string]: boolean }>({});
+
+  const renderAssetCard = (asset: Asset) => {
+    const isStacked = asset.stacked_assets && asset.stacked_assets.length > 0;
+    const isExpanded = expandedRecentStacks[asset.id];
+    
+    return (
+      <div key={asset.id} style={{ position: 'relative' }}>
+        {/* Background Stack Effect Layers */}
+        {isStacked && (
+          <>
+            <div style={{
+              position: 'absolute',
+              top: '6px',
+              left: '6px',
+              right: '-6px',
+              bottom: '-6px',
+              background: 'rgba(5, 10, 20, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              borderRadius: '12px',
+              zIndex: 1
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '3px',
+              left: '3px',
+              right: '-3px',
+              bottom: '-3px',
+              background: 'rgba(10, 18, 36, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '12px',
+              zIndex: 2
+            }} />
+          </>
+        )}
+
+        {/* Main Card */}
+        <div
+          onClick={() => handleQuickImageClick(asset)}
+          className="glass-panel glass-panel-interactive animate-slide-up"
+          style={{
+            zIndex: 3,
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            height: isExpanded ? 'auto' : '220px',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden', position: 'relative' }}>
+            <img
+              src={getImageUrl(asset.url)}
+              alt={asset.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+            {isStacked && (
+              <div style={{
+                position: 'absolute',
+                top: '8px',
+                left: '8px',
+                background: 'rgba(0, 229, 255, 0.95)',
+                color: '#050a14',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                boxShadow: '0 2px 5px rgba(0, 229, 255, 0.3)'
+              }}>
+                +{asset.stacked_assets!.length + 1} Stacked
+              </div>
+            )}
+          </div>
+          <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {asset.title}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', marginTop: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
+                <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
+                  {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
+                </span>
+              </div>
+            </div>
+
+            {/* Stacking controls inside the card */}
+            {isStacked && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedRecentStacks(prev => ({ ...prev, [asset.id]: !prev[asset.id] }));
+                }}
+                className="btn btn-secondary"
+                style={{
+                  width: '100%',
+                  fontSize: '0.75rem',
+                  padding: '4px 8px',
+                  borderColor: 'var(--accent-cyan)',
+                  color: 'var(--accent-cyan)',
+                  marginTop: '4px'
+                }}
+              >
+                {isExpanded ? 'Hide Similar ↑' : `Show ${asset.stacked_assets!.length} Similar ↓`}
+              </button>
+            )}
+
+            {/* Stacked sub-assets list */}
+            {isExpanded && asset.stacked_assets && (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                marginTop: '8px',
+                paddingTop: '8px',
+                borderTop: '1px solid var(--border-color)'
+              }}>
+                {asset.stacked_assets.map((subAsset) => (
+                  <div
+                    key={subAsset.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuickImageClick(subAsset);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: 'rgba(5, 10, 20, 0.4)',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      border: '1px solid transparent'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent-cyan)'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
+                  >
+                    <img
+                      src={getImageUrl(subAsset.url)}
+                      alt={subAsset.title}
+                      style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '4px' }}
+                    />
+                    <div style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      flex: 1
+                    }}>
+                      {subAsset.title}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const getGroupedAssets = () => {
     if (groupBy === 'none') return null;
@@ -488,38 +651,7 @@ function App() {
                       gridTemplateColumns: 'repeat(3, 1fr)',
                       gap: '20px'
                     }}>
-                      {recentAssets.map((asset) => (
-                        <div
-                          key={asset.id}
-                          onClick={() => handleQuickImageClick(asset)}
-                          className="glass-panel glass-panel-interactive animate-slide-up"
-                          style={{
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            height: '220px'
-                          }}
-                        >
-                          <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden' }}>
-                            <img
-                              src={getImageUrl(asset.url)}
-                              alt={asset.title}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                          </div>
-                          <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                            <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {asset.title}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
-                              <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
-                              <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
-                                {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      {recentAssets.map((asset) => renderAssetCard(asset))}
                     </div>
                   ) : (
                     Object.entries(getGroupedAssets() || {}).map(([groupName, assets]) => (
@@ -556,38 +688,7 @@ function App() {
                           gridTemplateColumns: 'repeat(3, 1fr)',
                           gap: '20px'
                         }}>
-                          {assets.map((asset) => (
-                            <div
-                              key={asset.id}
-                              onClick={() => handleQuickImageClick(asset)}
-                              className="glass-panel glass-panel-interactive animate-slide-up"
-                              style={{
-                                overflow: 'hidden',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                height: '220px'
-                              }}
-                            >
-                              <div style={{ height: '140px', backgroundColor: '#050a14', overflow: 'hidden' }}>
-                                <img
-                                  src={getImageUrl(asset.url)}
-                                  alt={asset.title}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                              </div>
-                              <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                  {asset.title}
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
-                                  <span style={{ color: 'var(--text-secondary)' }}>{asset.category}</span>
-                                  <span className={`badge ${asset.data_source === 'new_addition' ? 'badge-accent' : 'badge-default'}`} style={{ fontSize: '0.65rem' }}>
-                                    {asset.data_source === 'new_addition' ? 'New' : 'Archive'}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                          {assets.map((asset) => renderAssetCard(asset))}
                         </div>
                       </div>
                     ))

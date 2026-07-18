@@ -230,7 +230,7 @@ def api_get_recent_assets(offset: int = 0, limit: int = 6):
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 # Get all uploaded assets (new_addition)
                 cursor.execute(
-                    "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source FROM assets WHERE data_source = 'new_addition'"
+                    "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source, embedding FROM assets WHERE data_source = 'new_addition'"
                 )
                 uploaded = [dict(r) for r in cursor.fetchall()]
                 # Reverse to show latest first
@@ -241,7 +241,7 @@ def api_get_recent_assets(offset: int = 0, limit: int = 6):
                 if offset >= num_uploaded:
                     orig_offset = offset - num_uploaded
                     cursor.execute(
-                        "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source "
+                        "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source, embedding "
                         "FROM assets WHERE data_source != 'new_addition' OR data_source IS NULL "
                         "ORDER BY id DESC LIMIT %s OFFSET %s",
                         (limit, orig_offset)
@@ -253,7 +253,7 @@ def api_get_recent_assets(offset: int = 0, limit: int = 6):
 
                     if needed_original > 0:
                         cursor.execute(
-                            "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source "
+                            "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source, embedding "
                             "FROM assets WHERE data_source != 'new_addition' OR data_source IS NULL "
                             "ORDER BY id DESC LIMIT %s OFFSET 0",
                             (needed_original,)
@@ -264,13 +264,62 @@ def api_get_recent_assets(offset: int = 0, limit: int = 6):
 
                     recent = recent_uploaded + recent_original
 
-        # Generate pre-signed S3 URLs only for the paginated items
-        for asset in recent:
+        # Perform visual stacking of highly similar assets
+        import numpy as np
+        SIMILARITY_THRESHOLD = 0.85
+        recent_stacked = []
+        primary_embeddings = []
+        primary_indices = []
+
+        for item in recent:
+            emb_bytes = item.pop("embedding", None)
+            if emb_bytes is None:
+                item["stacked_assets"] = []
+                recent_stacked.append(item)
+                primary_embeddings.append(None)
+                primary_indices.append(len(recent_stacked) - 1)
+                continue
+
+            try:
+                emb = np.frombuffer(emb_bytes, dtype=np.float32)
+            except Exception:
+                item["stacked_assets"] = []
+                recent_stacked.append(item)
+                primary_embeddings.append(None)
+                primary_indices.append(len(recent_stacked) - 1)
+                continue
+
+            is_stacked = False
+            for p_idx, p_emb in zip(primary_indices, primary_embeddings):
+                if p_emb is None:
+                    continue
+                sim = float(np.dot(emb, p_emb))
+                if sim >= SIMILARITY_THRESHOLD:
+                    if "stacked_assets" not in recent_stacked[p_idx]:
+                        recent_stacked[p_idx]["stacked_assets"] = []
+                    recent_stacked[p_idx]["stacked_assets"].append(item)
+                    is_stacked = True
+                    break
+
+            if not is_stacked:
+                item["stacked_assets"] = []
+                recent_stacked.append(item)
+                primary_embeddings.append(emb)
+                primary_indices.append(len(recent_stacked) - 1)
+
+        # Generate pre-signed S3 URLs for primary and stacked assets
+        for asset in recent_stacked:
             url = asset["url"]
             if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
                 asset["url"] = get_presigned_url(url)
+            
+            if "stacked_assets" in asset:
+                for sub_asset in asset["stacked_assets"]:
+                    sub_url = sub_asset["url"]
+                    if sub_url.startswith("http") and (".s3." in sub_url or "s3.amazonaws.com" in sub_url):
+                        sub_asset["url"] = get_presigned_url(sub_url)
 
-        return {"code": 200, "message": "success", "data": recent}
+        return {"code": 200, "message": "success", "data": recent_stacked}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
