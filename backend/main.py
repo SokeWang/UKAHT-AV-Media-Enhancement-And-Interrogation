@@ -907,10 +907,14 @@ def api_agent_chat(req: ChatRequest):
             session_id = req.session_id
 
         # 2. If ReAct agent didn't return search results, perform fallback semantic search
+        # We rely strictly on the similarity score threshold (>= 0.25) to distinguish conversational chats
+        # (which yield low score noise, e.g., < 0.23) from actual semantic image search queries.
         if not retrieved_assets:
             try:
                 from backend.retrieval.search import semantic_search
-                retrieved_assets = semantic_search(query=req.message, adapter=True)[:8]
+                search_results = semantic_search(query=req.message, adapter=True)
+                # Only keep assets with a similarity score of >= 0.25 (meaningful match)
+                retrieved_assets = [asset for asset in search_results if asset.get("score", 0) >= 0.25][:8]
             except Exception as search_exc:
                 print(f"[CHAT SEARCH WARN] Fallback semantic search failed: {search_exc}")
 
