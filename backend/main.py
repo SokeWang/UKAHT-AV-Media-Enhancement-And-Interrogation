@@ -878,17 +878,61 @@ def api_sync_status():
 @app.post("/api/agent/chat")
 def api_agent_chat(req: ChatRequest):
     """
-    Multi-turn Q&A via the ReAct LLM agent (proxied to the algorithm service).
+    Multi-turn Q&A via the ReAct LLM agent (proxied to the algorithm service)
+    with database vector search fallback and S3 pre-signed URL handling.
     """
     try:
         import requests
-        resp = requests.post(
-            f"{ALGO_API_BASE}/api/algo/agent/chat",
-            json={"message": req.message, "session_id": req.session_id},
-            timeout=60,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        retrieved_assets = []
+        
+        # 1. Try to get response from algorithm container ReAct agent
+        try:
+            resp = requests.post(
+                f"{ALGO_API_BASE}/api/algo/agent/chat",
+                json={"message": req.message, "session_id": req.session_id},
+                timeout=25,
+            )
+            resp.raise_for_status()
+            res_json = resp.json()
+            if res_json.get("code") == 200:
+                chat_data = res_json.get("data", {})
+                answer = chat_data.get("answer", "")
+                retrieved_assets = chat_data.get("retrieved_assets", [])
+                session_id = chat_data.get("session_id", req.session_id)
+            else:
+                answer = f"[LLM unavailable: {res_json.get('message')}]"
+                session_id = req.session_id
+        except Exception as exc:
+            answer = f"[LLM unavailable: {str(exc)}]"
+            session_id = req.session_id
+
+        # 2. If ReAct agent didn't return search results, perform fallback semantic search
+        if not retrieved_assets:
+            try:
+                from backend.retrieval.search import semantic_search
+                retrieved_assets = semantic_search(query=req.message, adapter=True)[:8]
+            except Exception as search_exc:
+                print(f"[CHAT SEARCH WARN] Fallback semantic search failed: {search_exc}")
+
+        # 3. Generate pre-signed S3 URLs for all returned assets
+        try:
+            from backend.retrieval.search import get_presigned_url
+            for asset in retrieved_assets:
+                url = asset.get("url")
+                if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                    asset["url"] = get_presigned_url(url)
+        except Exception as url_exc:
+            print(f"[CHAT URL WARN] Pre-signed URL generation failed: {url_exc}")
+
+        return {
+            "code": 200,
+            "message": "success",
+            "data": {
+                "answer": answer,
+                "retrieved_assets": retrieved_assets,
+                "session_id": session_id
+            }
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

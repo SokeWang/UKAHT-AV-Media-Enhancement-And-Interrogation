@@ -125,9 +125,13 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({
 
     const chatData = resJson.data;
     
-    // If backend reports LLM is unavailable, trigger fallback mock
+    // If backend reports LLM is unavailable, trigger fallback mock but keep actual retrieved assets
     if (chatData.answer && chatData.answer.includes('[LLM unavailable')) {
-      return getDemoReply(msg);
+      const demo = getDemoReply(msg);
+      return {
+        ...demo,
+        retrieved_assets: chatData.retrieved_assets || []
+      };
     }
 
     return chatData;
