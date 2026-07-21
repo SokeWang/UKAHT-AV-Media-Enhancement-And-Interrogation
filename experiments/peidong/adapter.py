@@ -1,19 +1,10 @@
 """
-backend/models/adapter.py
-Owner: Peidong Wang — Milestone 3 (polar domain MLP projection adapter)
+experiments/peidong/adapter.py
+Owner: Peidong Wang — Milestone 3 (polar domain MLP/LoRA/QLoRA projection adapter)
 
 Responsibilities:
-  - Define the AdapterModel (2-layer MLP) that re-projects CLIP embeddings
-    into a polar-domain-aligned vector space using Triplet Loss training.
-  - Provide load/save helpers so the trained weights can be dropped in
-    without changing retrieval/search.py.
-  - Training is done separately in notebooks/train_adapter.ipynb.
-    This module is the inference-time API.
-
-Usage at inference time:
-    from backend.models.adapter import load_adapter, apply_adapter
-    adapter = load_adapter("static/models/adapter.pth")
-    adapted_emb = apply_adapter(clip_embedding, adapter)
+  - Define the AdapterModel with configurable modes: 'mlp', 'lora', 'qlora'.
+  - Provide load/save helpers so the trained weights can be dropped in.
 """
 
 import os
