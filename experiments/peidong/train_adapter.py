@@ -46,65 +46,86 @@ def load_dataset_embeddings():
     """Load all asset embeddings and categories from database (PostgreSQL or SQLite)."""
     assets = []
     
-    # Try PostgreSQL first
-    pg_host = os.getenv("POSTGRES_HOST") or os.getenv("DB_HOST")
-    if pg_host:
-        try:
-            import psycopg2
-            from psycopg2.extras import RealDictCursor
-            pg_db = os.getenv("POSTGRES_DB", "ukaht_db")
-            pg_user = os.getenv("POSTGRES_USER", "ukaht_user")
-            pg_pass = os.getenv("POSTGRES_PASSWORD", "ukaht_password")
-            pg_port = int(os.getenv("POSTGRES_PORT", 5432))
-            
-            conn = psycopg2.connect(host=pg_host, database=pg_db, user=pg_user, password=pg_pass, port=pg_port)
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute("SELECT id, title, category, base_code, embedding FROM assets WHERE embedding IS NOT NULL")
-            for row in cursor.fetchall():
-                emb_bytes = row["embedding"]
-                if emb_bytes is not None:
-                    emb = np.frombuffer(emb_bytes, dtype=np.float32)
-                    assets.append({
-                        "id": row["id"],
-                        "category": row["category"] or "default",
-                        "base_code": row["base_code"] or "default",
-                        "embedding": emb
-                    })
-            conn.close()
-            print(f"[DATA] Loaded {len(assets)} embeddings from PostgreSQL database.")
-        except Exception as e:
-            print(f"[WARN] Failed to connect to PostgreSQL: {e}. Falling back to SQLite...")
+    # Try PostgreSQL across common docker/local hosts and db names
+    hosts_to_try = []
+    if os.getenv("POSTGRES_HOST"):
+        hosts_to_try.append(os.getenv("POSTGRES_HOST"))
+    hosts_to_try.extend(["db", "ukaht-db", "localhost", "127.0.0.1"])
+    
+    db_names_to_try = [os.getenv("POSTGRES_DB", "ukaht"), "ukaht", "ukaht_db"]
+    pg_user = os.getenv("POSTGRES_USER", "postgres")
+    pg_pass = os.getenv("POSTGRES_PASSWORD", "postgres")
+    pg_port = int(os.getenv("POSTGRES_PORT", 5432))
+    
+    try:
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+        
+        for host in hosts_to_try:
+            for db_name in db_names_to_try:
+                try:
+                    conn = psycopg2.connect(
+                        host=host, 
+                        database=db_name, 
+                        user=pg_user, 
+                        password=pg_pass, 
+                        port=pg_port, 
+                        connect_timeout=3
+                    )
+                    cursor = conn.cursor(cursor_factory=RealDictCursor)
+                    cursor.execute("SELECT id, title, category, base_code, embedding FROM assets WHERE embedding IS NOT NULL")
+                    rows = cursor.fetchall()
+                    conn.close()
+                    
+                    if rows:
+                        for row in rows:
+                            emb_bytes = row["embedding"]
+                            if emb_bytes is not None:
+                                emb = np.frombuffer(emb_bytes, dtype=np.float32)
+                                assets.append({
+                                    "id": row["id"],
+                                    "category": row["category"] or "default",
+                                    "base_code": row["base_code"] or "default",
+                                    "embedding": emb
+                                })
+                        print(f"[DATA] Successfully loaded {len(assets)} embeddings from PostgreSQL database at '{host}:{pg_port}/{db_name}'.")
+                        return assets
+                except Exception:
+                    continue
+    except ImportError:
+        print("[WARN] psycopg2 module not available.")
 
-    # Fallback to SQLite
-    if not assets:
-        sqlite_paths = [
-            os.path.join(PROJECT_ROOT, "backend", "db.sqlite"),
-            os.path.join(PROJECT_ROOT, "backend", "db", "db.sqlite"),
-            "/app/backend/db.sqlite"
-        ]
-        db_path = None
-        for p in sqlite_paths:
-            if os.path.exists(p):
-                db_path = p
-                break
-                
-        if db_path and os.path.exists(db_path):
-            import sqlite3
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, title, category, base_code, embedding FROM assets WHERE embedding IS NOT NULL")
-            for row in cursor.fetchall():
-                emb_bytes = row[4]
-                if emb_bytes is not None:
-                    emb = np.frombuffer(emb_bytes, dtype=np.float32)
-                    assets.append({
-                        "id": row[0],
-                        "category": row[2] or "default",
-                        "base_code": row[3] or "default",
-                        "embedding": emb
-                    })
-            conn.close()
-            print(f"[DATA] Loaded {len(assets)} embeddings from SQLite database ('{db_path}').")
+    # Fallback to SQLite if PostgreSQL did not return embeddings
+    sqlite_paths = [
+        os.path.join(PROJECT_ROOT, "backend", "db.sqlite"),
+        os.path.join(PROJECT_ROOT, "backend", "db", "db.sqlite"),
+        "/app/backend/db.sqlite",
+        "/app/backend/db/db.sqlite"
+    ]
+    for db_path in sqlite_paths:
+        if os.path.exists(db_path):
+            try:
+                import sqlite3
+                conn = sqlite3.connect(db_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, title, category, base_code, embedding FROM assets WHERE embedding IS NOT NULL")
+                rows = cursor.fetchall()
+                conn.close()
+                if rows:
+                    for row in rows:
+                        emb_bytes = row[4]
+                        if emb_bytes is not None:
+                            emb = np.frombuffer(emb_bytes, dtype=np.float32)
+                            assets.append({
+                                "id": row[0],
+                                "category": row[2] or "default",
+                                "base_code": row[3] or "default",
+                                "embedding": emb
+                            })
+                    print(f"[DATA] Loaded {len(assets)} embeddings from SQLite database ('{db_path}').")
+                    return assets
+            except Exception as sqlite_err:
+                print(f"[WARN] Failed reading SQLite at {db_path}: {sqlite_err}")
 
     return assets
 
