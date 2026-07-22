@@ -131,7 +131,7 @@ def load_dataset_embeddings():
 
 
 class TripletDataset(Dataset):
-    """Constructs (Anchor, Positive, Negative) embedding triplets for metric learning."""
+    """Constructs (Anchor, Positive, Hard Negative) embedding triplets for metric learning."""
     def __init__(self, assets, num_samples=1000):
         self.assets = assets
         self.num_samples = num_samples
@@ -170,12 +170,25 @@ class TripletDataset(Dataset):
             pos_emb = anchor_emb + noise
             pos_emb = pos_emb / np.linalg.norm(pos_emb)
 
-        # Pick negative (different category or distant vector)
+        # Hard Negative Mining: sample candidates from different categories and pick the closest one
         diff_cats = [c for c in self.categories if c != cat_a]
         if diff_cats:
-            cat_n = random.choice(diff_cats)
-            neg_idx = random.choice(self.groups[cat_n])
-            neg_emb = self.assets[neg_idx]["embedding"]
+            # Candidate negative pool (Hard Negative Mining)
+            candidate_indices = []
+            for _ in range(min(5, len(diff_cats))):
+                cat_n = random.choice(diff_cats)
+                candidate_indices.append(random.choice(self.groups[cat_n]))
+                
+            # Find the candidate with highest similarity (hardest negative)
+            best_neg_idx = candidate_indices[0]
+            max_sim = -1.0
+            for c_idx in candidate_indices:
+                sim = float(np.dot(anchor_emb, self.assets[c_idx]["embedding"]))
+                if sim > max_sim:
+                    max_sim = sim
+                    best_neg_idx = c_idx
+                    
+            neg_emb = self.assets[best_neg_idx]["embedding"]
         else:
             # Pick a random vector with negative direction
             neg_emb = -anchor_emb + np.random.normal(0, 0.1, anchor_emb.shape).astype(np.float32)
@@ -188,7 +201,17 @@ class TripletDataset(Dataset):
         )
 
 
-def train(mode="mlp", epochs=15, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=32, output_path=None):
+def info_nce_loss(out_a, out_p, temperature=0.07):
+    """Compute InfoNCE contrastive loss over a batch of (Anchor, Positive) pairs."""
+    # Cosine similarity matrix: [B, B]
+    sim_matrix = torch.matmul(out_a, out_p.T) / temperature
+    labels = torch.arange(sim_matrix.size(0), device=sim_matrix.device)
+    loss_a2p = nn.functional.cross_entropy(sim_matrix, labels)
+    loss_p2a = nn.functional.cross_entropy(sim_matrix.T, labels)
+    return (loss_a2p + loss_p2a) / 2.0
+
+
+def train(mode="mlp", epochs=20, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=32, margin=0.4, loss_type="triplet", output_path=None):
     print("=" * 60)
     print(f"  PEIDONG WANG - ADAPTER FINE-TUNING ({mode.upper()})")
     print("=" * 60)
@@ -206,7 +229,12 @@ def train(mode="mlp", epochs=15, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
     model = _build_model(mode=mode, lora_r=lora_r, lora_alpha=lora_alpha)
     model.train()
 
-    criterion = nn.TripletMarginLoss(margin=0.2, p=2)
+    if loss_type == "infonce":
+        print(f"[LOSS] Using InfoNCE Contrastive Loss (temperature=0.07)")
+    else:
+        print(f"[LOSS] Using Triplet Margin Loss (margin={margin}) with Hard Negative Mining")
+        criterion = nn.TripletMarginLoss(margin=margin, p=2)
+
     optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
 
     print(f"[MODEL] Fine-tuning Mode: {mode.upper()}")
@@ -222,7 +250,11 @@ def train(mode="mlp", epochs=15, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
             out_p = model(pos)
             out_n = model(neg)
             
-            loss = criterion(out_a, out_p, out_n)
+            if loss_type == "infonce":
+                loss = info_nce_loss(out_a, out_p)
+            else:
+                loss = criterion(out_a, out_p, out_n)
+                
             loss.backward()
             optimizer.step()
             
@@ -231,7 +263,7 @@ def train(mode="mlp", epochs=15, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
             
         avg_loss = total_loss / max(1, batches)
         if epoch % max(1, epochs // 5) == 0 or epoch == epochs:
-            print(f"  Epoch [{epoch:2d}/{epochs:2d}] -> Triplet Loss: {avg_loss:.6f}")
+            print(f"  Epoch [{epoch:2d}/{epochs:2d}] -> {loss_type.capitalize()} Loss: {avg_loss:.6f}")
 
     # Determine default save path
     if not output_path:
@@ -250,9 +282,11 @@ def train(mode="mlp", epochs=15, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Peidong's Polar Domain Adapter")
     parser.add_argument("--mode", type=str, default="mlp", choices=["mlp", "lora", "qlora"], help="Adapter architecture mode")
-    parser.add_argument("--epochs", type=int, default=15, help="Number of training epochs")
+    parser.add_argument("--epochs", type=int, default=20, help="Number of training epochs")
     parser.add_argument("--batch-size", type=int, default=16, help="Batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
+    parser.add_argument("--margin", type=float, default=0.4, help="Margin for Triplet Margin Loss")
+    parser.add_argument("--loss-type", type=str, default="triplet", choices=["triplet", "infonce"], help="Loss function type (triplet or infonce)")
     parser.add_argument("--lora-r", type=int, default=16, help="LoRA rank")
     parser.add_argument("--lora-alpha", type=int, default=32, help="LoRA alpha scaling factor")
     parser.add_argument("--output-path", type=str, default="", help="Target weights file path (.pth)")
@@ -265,6 +299,8 @@ if __name__ == "__main__":
         epochs=args.epochs,
         batch_size=args.batch_size,
         lr=args.lr,
+        margin=args.margin,
+        loss_type=args.loss_type,
         lora_r=args.lora_r,
         lora_alpha=args.lora_alpha,
         output_path=out_path
