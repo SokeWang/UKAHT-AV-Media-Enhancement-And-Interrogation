@@ -1194,10 +1194,9 @@ def api_evaluate_dashboard():
                 ideal_dcg = _dcg(list(relevant)[:10], relevant)
                 base_ndcg = _dcg(base_ranked[:10], relevant) / ideal_dcg if ideal_dcg > 0 else 0.0
                 
-                # Adapted similarity
+                # Adapted similarity (Text query stays in CLIP text space, database images in Adapted space)
                 if adapter_loaded:
-                    q_adapted_emb = apply_adapter_from_algo(q_emb, adapter_path)
-                    adapt_scores = np.dot(adapted_matrix, q_adapted_emb)
+                    adapt_scores = np.dot(adapted_matrix, q_emb)
                     adapt_sort_idx = np.argsort(adapt_scores)[::-1]
                     adapt_ranked = [asset_ids[idx] for idx in adapt_sort_idx]
                     adapt_ap = _average_precision(adapt_ranked, relevant)

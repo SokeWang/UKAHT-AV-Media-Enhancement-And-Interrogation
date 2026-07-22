@@ -158,11 +158,8 @@ def semantic_search(
         scores_arr = [1.0] * len(matched_rows)
         indices_arr = list(range(len(matched_rows)))
     else:
-        # Retrieve and adapt query embedding
+        # Retrieve text embedding (keep in CLIP text space; image embeddings are adapted)
         query_emb = get_text_embedding_from_algo(query)
-        if adapter:
-            adapter_path = adapter if isinstance(adapter, str) else ""
-            query_emb = apply_adapter_from_algo(query_emb, adapter_path)
         query_emb = query_emb.astype("float32").reshape(1, -1)
 
         # Build the FAISS Index
