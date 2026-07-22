@@ -81,15 +81,15 @@ def _build_model(input_dim: int = 512, hidden_dim: int = 1024, output_dim: int =
 
         def forward(self, x):
             if self.mode == "mlp":
-                out = self.net(x)
+                out = x + 0.1 * self.net(x)
             elif self.mode == "lora":
                 base_out = x @ self.base_weight.t()
-                lora_out = self.lora_B(self.lora_A(x)) * self.scaling
+                lora_out = self.lora_B(self.lora_A(x)) * (self.scaling * 0.1)
                 out = base_out + lora_out
             elif self.mode == "qlora":
                 dequantized_weight = self._dequantize_nf4()
                 base_out = x @ dequantized_weight.t()
-                lora_out = self.lora_B(self.lora_A(x)) * self.scaling
+                lora_out = self.lora_B(self.lora_A(x)) * (self.scaling * 0.1)
                 out = base_out + lora_out
                 
             # L2 normalise
