@@ -68,18 +68,36 @@ def startup_event():
 # Lazy adapter loader
 # ---------------------------------------------------------------------------
 _adapter = None
-_adapter_loaded = False
+_adapter_mtime = 0.0
 STATIC_DIR = os.getenv("UKAHT_STATIC_DIR", "/app/backend/static")
 
 def _get_adapter(adapter_path: Optional[str] = None):
-    global _adapter, _adapter_loaded
-    if not adapter_path:
-        adapter_path = os.path.join(STATIC_DIR, "models", "adapter.pth")
-        
-    # If a specific path is requested or not loaded yet
-    if not _adapter_loaded or (adapter_path and not os.path.exists(os.path.join(STATIC_DIR, "models", "adapter.pth"))):
-        _adapter = load_adapter(adapter_path)  # returns None if not yet trained
-        _adapter_loaded = True
+    global _adapter, _adapter_mtime
+    
+    possible_paths = [
+        adapter_path,
+        os.path.join(STATIC_DIR, "models", "adapter.pth"),
+        "/app/backend/static/models/adapter.pth",
+        "/app/static/models/adapter.pth"
+    ]
+    target_path = None
+    for p in possible_paths:
+        if p and os.path.exists(p):
+            target_path = p
+            break
+
+    if not target_path:
+        return None
+
+    try:
+        current_mtime = os.path.getmtime(target_path)
+        if _adapter is None or current_mtime > _adapter_mtime:
+            print(f"[MODEL] Loading updated adapter from: {target_path}")
+            _adapter = load_adapter(target_path)
+            _adapter_mtime = current_mtime
+    except Exception as exc:
+        print(f"[WARN] Failed checking adapter mtime: {exc}")
+
     return _adapter
 
 # ---------------------------------------------------------------------------
