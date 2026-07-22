@@ -251,9 +251,14 @@ def train(mode="mlp", epochs=20, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
             out_n = model(neg)
             
             if loss_type == "infonce":
-                loss = info_nce_loss(out_a, out_p)
+                loss_main = info_nce_loss(out_a, out_p)
             else:
-                loss = criterion(out_a, out_p, out_n)
+                loss_main = criterion(out_a, out_p, out_n)
+                
+            # CLIP Multi-Modal Alignment Preservation Regularization
+            # Prevents model from rotating away from CLIP text-image space, boosting Text-to-Image MAP
+            loss_reg = (1.0 - torch.nn.functional.cosine_similarity(out_a, anchor, dim=-1)).mean()
+            loss = loss_main + 1.0 * loss_reg
                 
             loss.backward()
             optimizer.step()
