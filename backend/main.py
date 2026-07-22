@@ -1054,6 +1054,7 @@ def api_evaluate_dashboard():
         from backend.retrieval.search import semantic_search
         
         golden_queries = []
+        # 1. Try file
         if os.path.exists(DEFAULT_GOLDEN_PATH):
             try:
                 with open(DEFAULT_GOLDEN_PATH, "r", encoding="utf-8") as f:
@@ -1061,6 +1062,7 @@ def api_evaluate_dashboard():
             except Exception:
                 pass
         
+        # 2. Try golden_test_set table in database
         if not golden_queries:
             from backend.db.database import get_connection
             from psycopg2.extras import RealDictCursor
@@ -1079,6 +1081,46 @@ def api_evaluate_dashboard():
             except Exception:
                 pass
 
+        # 3. Dynamic fallback: sample from assets table metadata
+        if not golden_queries:
+            from backend.db.database import get_connection
+            from psycopg2.extras import RealDictCursor
+            try:
+                with get_connection() as conn:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                        cursor.execute("SELECT id, title, category, description, base_code FROM assets WHERE description IS NOT NULL AND description != '' LIMIT 50")
+                        rows = cursor.fetchall()
+                        if not rows:
+                            cursor.execute("SELECT id, title, category, description, base_code FROM assets LIMIT 50")
+                            rows = cursor.fetchall()
+                            
+                        for row in rows:
+                            q_text = row.get("description") or row.get("title") or f"{row.get('category', 'Archive')} {row.get('base_code', '')}".strip()
+                            if q_text:
+                                golden_queries.append({
+                                    "asset_id": row["id"],
+                                    "caption": q_text,
+                                    "query": q_text,
+                                    "relevant_ids": [row["id"]]
+                                })
+            except Exception as exc:
+                print(f"[EVAL WARN] Fallback asset query generation failed: {exc}")
+
+        # Check adapter status across all possible paths
+        possible_adapter_paths = [
+            os.path.join(BASE_DIR, "static", "models", "adapter.pth"),
+            os.path.join(os.path.dirname(BASE_DIR), "backend", "static", "models", "adapter.pth"),
+            "/app/backend/static/models/adapter.pth",
+            "/app/static/models/adapter.pth"
+        ]
+        adapter_path = None
+        for p in possible_adapter_paths:
+            if os.path.exists(p):
+                adapter_path = p
+                break
+                
+        adapter_loaded = adapter_path is not None
+
         if not golden_queries:
             return {
                 "code": 200,
@@ -1086,17 +1128,13 @@ def api_evaluate_dashboard():
                 "data": {
                     "has_golden": False,
                     "queries_count": 0,
-                    "adapter_loaded": False,
+                    "adapter_loaded": adapter_loaded,
                     "baseline": {"map": 0, "ndcg": 0},
                     "adapted": {"map": 0, "ndcg": 0},
                     "queries": []
                 }
             }
 
-        adapter_dir = os.path.join(BASE_DIR, "static", "models")
-        adapter_path = os.path.join(adapter_dir, "adapter.pth")
-        adapter_loaded = os.path.exists(adapter_path)
-        
         baseline_fn = lambda q: semantic_search(q, adapter=None)
         adapted_fn = lambda q: semantic_search(q, adapter=adapter_path if adapter_loaded else None)
         
@@ -1209,9 +1247,19 @@ def api_evaluate_projection():
         baseline_matrix = np.vstack(raw_embs).astype("float32")
         baseline_proj = _project_embeddings_pca(baseline_matrix)
         
-        adapter_dir = os.path.join(BASE_DIR, "static", "models")
-        adapter_path = os.path.join(adapter_dir, "adapter.pth")
-        adapter_loaded = os.path.exists(adapter_path)
+        possible_adapter_paths = [
+            os.path.join(BASE_DIR, "static", "models", "adapter.pth"),
+            os.path.join(os.path.dirname(BASE_DIR), "backend", "static", "models", "adapter.pth"),
+            "/app/backend/static/models/adapter.pth",
+            "/app/static/models/adapter.pth"
+        ]
+        adapter_path = None
+        for p in possible_adapter_paths:
+            if os.path.exists(p):
+                adapter_path = p
+                break
+                
+        adapter_loaded = adapter_path is not None
         
         if adapter_loaded:
             try:
