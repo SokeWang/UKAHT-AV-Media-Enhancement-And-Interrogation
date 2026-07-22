@@ -42,6 +42,7 @@ services:
     volumes:
       # Mount source code for hot reloading
       - ./algorithm:/app/algorithm
+      - ./experiments:/app/experiments
       # Share the backend static directory to read uploads directly via file paths
       - ./backend/static:/app/backend/static
     command: uvicorn algorithm.main:app --host 0.0.0.0 --port 8001 --reload
