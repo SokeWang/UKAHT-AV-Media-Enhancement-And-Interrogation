@@ -383,11 +383,18 @@ export default function Dashboard({ apiBase, onSelectAsset, onClose }: Dashboard
 
                 <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Mean Average Precision Delta</span>
-                  {evalData && evalData.adapted.map > evalData.baseline.map ? (
+                  {evalData ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <TrendingUp size={24} style={{ color: 'var(--accent-cyan)' }} />
-                      <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>
-                        +{((evalData.adapted.map - evalData.baseline.map) * 100).toFixed(1)}%
+                      {evalData.adapted.map >= evalData.baseline.map ? (
+                        <TrendingUp size={24} style={{ color: 'var(--accent-cyan)' }} />
+                      ) : null}
+                      <span style={{ 
+                        fontSize: '2rem', 
+                        fontWeight: 700, 
+                        color: evalData.adapted.map >= evalData.baseline.map ? 'var(--accent-cyan)' : '#f87171' 
+                      }}>
+                        {evalData.adapted.map >= evalData.baseline.map ? '+' : ''}
+                        {((evalData.adapted.map - evalData.baseline.map) * 100).toFixed(1)}%
                       </span>
                     </div>
                   ) : (

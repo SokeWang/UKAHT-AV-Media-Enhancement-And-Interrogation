@@ -131,53 +131,53 @@ def load_dataset_embeddings():
 
 
 class TripletDataset(Dataset):
-    """Constructs (Anchor, Positive, Hard Negative) embedding triplets for metric learning."""
+    """Constructs (Anchor, Positive, Hard Negative) embedding triplets with fine-grained composite key grouping."""
     def __init__(self, assets, num_samples=1000):
         self.assets = assets
         self.num_samples = num_samples
         
-        # Group by category / base_code
+        # Group by fine-grained composite key: (category, base_code)
         self.groups = {}
         for idx, a in enumerate(assets):
-            cat = a["category"]
-            if cat not in self.groups:
-                self.groups[cat] = []
-            self.groups[cat].append(idx)
+            composite_key = f"{a['category']}||{a['base_code']}"
+            if composite_key not in self.groups:
+                self.groups[composite_key] = []
+            self.groups[composite_key].append(idx)
             
-        self.categories = list(self.groups.keys())
+        self.keys = list(self.groups.keys())
 
     def __len__(self):
         return self.num_samples
 
     def __getitem__(self, idx):
-        # Pick anchor category
-        if len(self.categories) > 1:
-            cat_a = random.choice([c for c in self.categories if len(self.groups[c]) >= 1])
+        # Pick anchor key
+        if len(self.keys) > 1:
+            key_a = random.choice([k for k in self.keys if len(self.groups[k]) >= 1])
         else:
-            cat_a = self.categories[0]
+            key_a = self.keys[0]
             
         # Pick anchor
-        anchor_idx = random.choice(self.groups[cat_a])
+        anchor_idx = random.choice(self.groups[key_a])
         anchor_emb = self.assets[anchor_idx]["embedding"]
         
-        # Pick positive (same category or corrupted version of anchor)
-        if len(self.groups[cat_a]) > 1:
-            pos_idx = random.choice([i for i in self.groups[cat_a] if i != anchor_idx])
+        # Pick fine-grained positive (same composite key or high initial similarity >= 0.70)
+        same_group_indices = [i for i in self.groups[key_a] if i != anchor_idx]
+        if same_group_indices:
+            pos_idx = random.choice(same_group_indices)
             pos_emb = self.assets[pos_idx]["embedding"]
         else:
-            # Add slight Gaussian noise to create synthetic positive
-            noise = np.random.normal(0, 0.02, anchor_emb.shape).astype(np.float32)
+            # Synthetic positive with slight perturbation
+            noise = np.random.normal(0, 0.015, anchor_emb.shape).astype(np.float32)
             pos_emb = anchor_emb + noise
             pos_emb = pos_emb / np.linalg.norm(pos_emb)
 
-        # Hard Negative Mining: sample candidates from different categories and pick the closest one
-        diff_cats = [c for c in self.categories if c != cat_a]
-        if diff_cats:
-            # Candidate negative pool (Hard Negative Mining)
+        # Hard Negative Mining: sample candidates from DIFFERENT composite keys
+        diff_keys = [k for k in self.keys if k != key_a]
+        if diff_keys:
             candidate_indices = []
-            for _ in range(min(5, len(diff_cats))):
-                cat_n = random.choice(diff_cats)
-                candidate_indices.append(random.choice(self.groups[cat_n]))
+            for _ in range(min(8, len(diff_keys))):
+                k_n = random.choice(diff_keys)
+                candidate_indices.append(random.choice(self.groups[k_n]))
                 
             # Find the candidate with highest similarity (hardest negative)
             best_neg_idx = candidate_indices[0]
