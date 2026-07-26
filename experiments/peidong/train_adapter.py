@@ -291,7 +291,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", type=int, default=16, help="Batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
     parser.add_argument("--margin", type=float, default=0.4, help="Margin for Triplet Margin Loss")
-    parser.add_argument("--loss-type", type=str, default="triplet", choices=["triplet", "infonce"], help="Loss function type (triplet or infonce)")
+    parser.add_argument("--loss-type", type=str, default="infonce", choices=["triplet", "infonce"], help="Loss function type (triplet or infonce)")
     parser.add_argument("--lora-r", type=int, default=16, help="LoRA rank")
     parser.add_argument("--lora-alpha", type=int, default=32, help="LoRA alpha scaling factor")
     parser.add_argument("--output-path", type=str, default="", help="Target weights file path (.pth)")

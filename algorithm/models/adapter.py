@@ -43,12 +43,18 @@ def _build_model(input_dim: int = 512, hidden_dim: int = 1024, output_dim: int =
             self.lora_r = lora_r
             self.lora_alpha = lora_alpha
             
+            # Learnable residual scale parameter initialized small (0.02)
+            self.gamma = nn.Parameter(torch.tensor(0.02, dtype=torch.float32))
+
             if self.mode == "mlp":
                 self.net = nn.Sequential(
                     nn.Linear(input_dim, hidden_dim),
-                    nn.ReLU(),
+                    nn.SiLU(),
                     nn.Linear(hidden_dim, output_dim)
                 )
+                # Initialize output layer to zero for identity warmup
+                nn.init.zeros_(self.net[2].weight)
+                nn.init.zeros_(self.net[2].bias)
             elif self.mode in ("lora", "qlora"):
                 # Base weight initialized as identity projection (frozen)
                 self.base_weight = nn.Parameter(torch.eye(output_dim, input_dim), requires_grad=False)
@@ -90,16 +96,17 @@ def _build_model(input_dim: int = 512, hidden_dim: int = 1024, output_dim: int =
 
         def forward(self, x):
             if self.mode == "mlp":
-                out = x + 0.1 * self.net(x)
+                delta = self.net(x)
+                out = x + self.gamma * delta
             elif self.mode == "lora":
                 base_out = x @ self.base_weight.t()
-                lora_out = self.lora_B(self.lora_A(x)) * (self.scaling * 0.1)
-                out = base_out + lora_out
+                delta = self.lora_B(self.lora_A(x)) * self.scaling
+                out = base_out + self.gamma * delta
             elif self.mode == "qlora":
                 dequantized_weight = self._dequantize_nf4()
                 base_out = x @ dequantized_weight.t()
-                lora_out = self.lora_B(self.lora_A(x)) * (self.scaling * 0.1)
-                out = base_out + lora_out
+                delta = self.lora_B(self.lora_A(x)) * self.scaling
+                out = base_out + self.gamma * delta
                 
             # L2 normalise
             return out / (out.norm(dim=-1, keepdim=True) + 1e-8)
