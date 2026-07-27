@@ -15,40 +15,40 @@
   * **工程职责**：后端基础设施与 API 逻辑（基于 FastAPI 的异步 RESTful API 研发，封装底层 model 推理，提供稳定的 RAG 接口）。
 * **罗天 (Tian Luo)**
   * **学术职责**：LLM Agent 与智能 RAG 架构（设计 ReAct 提示词策略，实现 LLM 工具调用和意图解析）。
-  * **工程职责**：混合数据库与检索引擎（设计 SQLite 向量与关系混合 Schema，实现向量 + SQL 元数据混合查询与索引优化）。
+  * **工程职责**：混合数据库与检索引擎（Milestone 1 搭建 SQLite 原型，Milestone 2 优化升级切换至 PostgreSQL 数据库，实现向量 + SQL 元数据混合查询与索引优化）。
 * **张艺升 (Yisheng Zhang)**
   * **学术职责**：自动处理与特征工程（部署 BLIP 批量生成 Caption，执行 3.3 GB 图像数据导入，提取高维特征向量）。
   * **工程职责**：容器化部署与 DevOps（编写 Dockerfile 构建环境隔离，配置 docker-compose 容器编排）。
 * **袁晨宇 (Chenyu Yuan)**
   * **学术职责**：学术评估与高维可视化（编写评估脚本计算 MAP 和 nDCG 指标，实现 t-SNE / UMAP 特征降维图）。
-  * **工程职责**：Interactive UI 开发（构建多轮对话检索界面，图表 and 推荐卡片展示，开发交互式人工标注 UI。原计划采用 Streamlit 开发，但因 Streamlit 不够定制化、自由度不够，后决定放弃并转向使用 React SPA 进行定制化开发）。
+  * **工程职责**：Interactive UI 开发（ Milestone 1 使用 Streamlit 搭建基础原型；Milestone 2 优化升级切换至 React SPA，构建多轮对话检索界面，图表和推荐卡片展示，开发交互式人工标注 UI）。
 
 ---
 
 ### **6周日程表**
 
-#### **里程碑 1：核心 Pipeline 基线与验证（第 1-2 周）**
-*目标：快速搭建出前后端打通的简单模型检索 Pipeline，降低可行性风险。*
+#### **里程碑 1：核心 Pipeline 基线与原型验证（第 1-2 周）**
+*目标：快速搭建出前后端打通的简单模型检索 Pipeline，验证可行性。*
 * **交付产物 (Explicit Outputs)**：
-  1. **SQLite 种子数据库**：在 `backend/db.sqlite` 中建立 `assets` 表结构，存储图像元数据、BLIP 描述和 512 维特征向量（以 BLOB 格式存储），并填充种子数据。
+  1. **SQLite 种子数据库**：在 `backend/db.sqlite` 中建立初始表结构，存储图像元数据、BLIP 描述和 512 维特征向量，填充种子数据。
   2. **后端 FastAPI 服务**：实现 `/api/search`（文本语义检索）和 `/api/recommend`（相似图推荐）接口。
-  3. **前端展示界面**：完成 Streamlit 检索网格布局与相似推荐面板 of 连接。
-  4. **自动化验证脚本**：`backend/verify_baselines.py` 能够成功执行并打印各接口计算出的余弦相似度分数。
+  3. **前端 Streamlit 原型界面**：完成 Streamlit 检索网格布局与相似推荐面板连接。
+  4. **自动化验证脚本**：`backend/verify_baselines.py` 能够成功执行并打印余弦相似度分数。
 * **团队分工**：
   * **王沛东**：封装预训练 CLIP & BLIP 推理接口，构建 FastAPI 服务。
-  * **罗天**：设计并初始化 SQLite 向量表 Schema。
-  * **袁晨宇**：完成前端 React 界面基础布局和接口请求对接（原定使用 Streamlit）。
+  * **罗天**：设计并初始化 SQLite 种子数据库。
+  * **袁晨宇**：完成前端 Streamlit 原型界面搭建与接口连接。
 
-#### **里程碑 2：大规模数据索引与黄金测试集标注（第 3 周）**
-*目标：全量处理 3.3 GB 图像，构建系统的精度评估基线。*
+#### **里程碑 2：架构优化升级（切换至 PostgreSQL + React SPA）与全量数据索引（第 3 周）**
+*目标：全量处理 3.3 GB 图像，完成数据库与前端架构升级，构建系统的精度评估基线。*
 * **交付产物 (Explicit Outputs)**：
-  1. **全量图像索引数据库**：包含 3.3 GB 图像特征向量及 BLIP 自动生成 captions 的 SQLite 数据库。
-  2. **人工标注黄金测试集**：导出为 `golden_test_set.json` 文件，包含 50–100 对代表性的“强正样本”图像-文本查询对。
-  3. **辅助标注 UI**：在前端 React 界面集成人工介入（Human-in-the-loop）的辅助打标与校对界面。
+  1. **PostgreSQL 全量图像数据库**：将数据库优化升级迁移至 PostgreSQL 容器（`ukaht-db`），全量导入 3.3 GB 图像特征向量及 BLIP 自动生成的描述。
+  2. **React SPA 架构与辅助标注 UI**：弃用 Streamlit 原型，全面升级为 React 单页应用（SPA），并集成人工介入（Human-in-the-loop）的辅助打标与校对界面。
+  3. **人工标注黄金测试集**：导出为 `golden_test_set.json` 文件，包含 50–100 对代表性的“强正样本”图像-文本查询对。
 * **团队分工**：
-  * **张艺升**：部署 BLIP 批量推理管道，运行全局数据导入脚本将 3.3 GB 图像特征存入 SQLite。
-  * **罗天**：优化 SQLite 的批量提交事务逻辑以提高录入效率。
-  * **袁晨宇**：开发 React 辅助标注页面（由 Streamlit 方案调整），并协同团队人工筛选标注黄金正样本对。
+  * **张艺升**：部署 BLIP 批量推理管道，运行全局数据导入脚本将 3.3 GB 图像特征存入 PostgreSQL。
+  * **罗天**：完成从 SQLite 到 PostgreSQL 的数据库架构升级迁移，优化批量提交事务与索引结构。
+  * **袁晨宇**：完成前端 UI 从 Streamlit 到 React SPA 的重构与辅助标注页面开发。
 
 #### **里程碑 3：极地领域自适应 MLP 适配器开发（第 4 周）**
 *目标：通过对比学习训练 MLP 层，纠正 CLIP 模型在极地文物和科考场景下的领域漂移。*

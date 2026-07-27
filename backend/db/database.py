@@ -175,7 +175,7 @@ def get_all_assets() -> list[dict]:
     with get_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
-                "SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source FROM assets"
+                "SELECT id, url, title, category, description, cluster_label, base_code, subject_type, shooting_year, copyright, data_source FROM assets"
             )
             rows = cursor.fetchall()
     return [dict(r) for r in rows]
@@ -186,7 +186,7 @@ def get_asset_by_id(asset_id: str) -> Optional[dict]:
     with get_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
-                "SELECT id, url, title, category, description, embedding, base_code, subject_type, shooting_year, copyright, data_source FROM assets WHERE id = %s",
+                "SELECT id, url, title, category, description, cluster_label, embedding, base_code, subject_type, shooting_year, copyright, data_source FROM assets WHERE id = %s",
                 (asset_id,)
             )
             row = cursor.fetchone()
@@ -203,7 +203,7 @@ def get_all_assets_with_embeddings() -> list[dict]:
     with get_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
-                "SELECT id, url, title, category, description, embedding, base_code, subject_type, shooting_year, copyright, data_source FROM assets"
+                "SELECT id, url, title, category, description, cluster_label, embedding, base_code, subject_type, shooting_year, copyright, data_source FROM assets"
             )
             rows = cursor.fetchall()
     res_list = []

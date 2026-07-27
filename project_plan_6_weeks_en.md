@@ -15,40 +15,40 @@ To address timeline and feasibility risks, the project adopts a **"Baseline-Firs
   * **Engineering**: Backend Infrastructure & API Logic (develop asynchronous RESTful APIs using FastAPI, encapsulate model inference, provide stable RAG endpoints).
 * **Tian Luo**
   * **DS Core**: LLM Agent & Intelligent RAG Architecture (engineer ReAct prompt strategies, implement tool-calling and intent-parsing).
-  * **Engineering**: Hybrid Database & Retrieval Engine (design SQLite vector + relational schema, implement integrated queries, optimize database indexes).
+  * **Engineering**: Hybrid Database & Retrieval Engine (Milestone 1 SQLite prototype; Milestone 2 upgraded to PostgreSQL database for vector + metadata hybrid queries and indexing optimization).
 * **Yisheng Zhang**
   * **DS Core**: Automated Processing & Feature Engineering (deploy BLIP for batch captioning, run 3.3 GB ingestion pipeline, extract CLIP visual/text embeddings).
   * **Engineering**: DevOps & Containerization (write Dockerfiles, configure docker-compose orchestration, manage dependencies).
 * **Chenyu Yuan**
   * **DS Core**: Academic Evaluation & Visualization (program evaluation scripts for MAP and nDCG, run ablation studies, build t-SNE/UMAP plots).
-  * **Engineering**: Interactive Frontend UI (build chat panel, result grids, recommendation cards, and annotation UI; originally planned with Streamlit, but transitioned to a custom React SPA because Streamlit was not customizable enough and lacked design/layout freedom).
+  * **Engineering**: Interactive Frontend UI (Milestone 1 built initial Streamlit prototype; Milestone 2 upgraded and migrated to custom React SPA for multi-turn chat, result grids, recommendation cards, and annotation UI).
 
 ---
 
 ### **6-Week Schedule**
 
-#### **Milestone 1: Core Baseline Pipeline & Verification (Weeks 1-2)**
-*Focus: Establish a fully working mock and baseline pipeline to guarantee feasibility early on.*
+#### **Milestone 1: Core Baseline Pipeline & Prototype Verification (Weeks 1-2)**
+*Focus: Establish a fully working prototype search pipeline to guarantee feasibility early on.*
 * **Explicit Outputs**:
-  1. **SQLite Seed Database**: SQLite file `backend/db.sqlite` with `assets` table schema configured for metadata, text descriptions, and 512-dim vector embeddings (BLOBs), populated with initial mock assets.
+  1. **SQLite Seed Database**: SQLite file `backend/db.sqlite` with initial schema for metadata, text descriptions, and 512-dim vector embeddings, populated with initial mock assets.
   2. **FastAPI Services**: Working `/api/search` (semantic search) and `/api/recommend` (visual similarity recommendation) API routes.
-  3. **Frontend Search Grid**: Streamlit search panel communicating with backend APIs.
+  3. **Streamlit Search Prototype**: Streamlit search panel communicating with backend APIs.
   4. **Baseline Verification Script**: A passing `backend/verify_baselines.py` script outputting similarity scores, validating end-to-end connectivity.
 * **Team Mapping**:
   * **Peidong Wang**: Implement pre-trained CLIP/BLIP inference APIs and set up FastAPI structure.
-  * **Tian Luo**: Design and initialize the SQLite storage schema.
-  * **Chenyu Yuan**: Design the base Streamlit search and grid UI.
+  * **Tian Luo**: Design and initialize the initial SQLite storage schema.
+  * **Chenyu Yuan**: Build the initial Streamlit search prototype and API connection.
 
-#### **Milestone 2: Corpus Ingestion & Golden Test Set Curation (Week 3)**
-*Focus: Ingest the full 3.3 GB polar image database and establish the validation benchmark.*
+#### **Milestone 2: Architecture Optimization (Switch to PostgreSQL + React SPA) & Corpus Ingestion (Week 3)**
+*Focus: Ingest full 3.3 GB polar images, upgrade database to PostgreSQL and frontend to React SPA, establish benchmark.*
 * **Explicit Outputs**:
-  1. **Corpus Indexed Database**: SQLite database populated with auto-generated BLIP captions and CLIP visual embeddings for all 3.3 GB of image files.
-  2. **Golden Test Set File**: A `golden_test_set.json` file containing 50–100 manually curated "strong positive" image-query benchmark pairs.
-  3. **Annotation Interface**: Interactive human-in-the-loop annotation UI panel on the frontend to review and refine captions (implemented in the React SPA).
+  1. **PostgreSQL Corpus Database**: Ingest 3.3 GB image visual embeddings and BLIP auto-captions into PostgreSQL (`ukaht-db` container).
+  2. **React SPA & Annotation UI**: Pivot from Streamlit prototype to production-grade React SPA, integrating human-in-the-loop annotation and caption editing interface.
+  3. **Golden Test Set File**: A `golden_test_set.json` file containing 50–100 manually curated "strong positive" image-query benchmark pairs.
 * **Team Mapping**:
-  * **Yisheng Zhang**: Implement batch BLIP captioning pipeline and run 3.3 GB dataset ingestion into SQLite.
-  * **Tian Luo**: Optimize SQLite batch ingestion transactional logic to speed up database commits.
-  * **Chenyu Yuan**: Build the React-based assisted annotation page (originally proposed as Streamlit, but pivoted to React to support richer custom layout controls), collaborating with the team to compile the JSON benchmark.
+  * **Yisheng Zhang**: Deploy batch BLIP captioning pipeline and run 3.3 GB dataset ingestion into PostgreSQL.
+  * **Tian Luo**: Execute database migration from SQLite to PostgreSQL, optimizing transactions and database indexing.
+  * **Chenyu Yuan**: Refactor frontend from Streamlit to React SPA and build the assisted annotation interface.
 
 #### **Milestone 3: Domain Adaptation MLP Adapter (Week 4)**
 *Focus: Train the MLP projection adapter using Triplet Loss to correct CLIP polar domain drift.*

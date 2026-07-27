@@ -34,71 +34,89 @@ ALGO_API_BASE = os.getenv("ALGO_API_BASE", "http://localhost:8001")
 # ---------------------------------------------------------------------------
 
 def get_text_embedding_from_algo(text: str) -> np.ndarray:
-    resp = requests.post(f"{ALGO_API_BASE}/api/algo/embed/text", json={"text": text}, timeout=10)
-    resp.raise_for_status()
-    emb = resp.json()["data"]["embedding"]
-    return np.array(emb, dtype=np.float32)
+    try:
+        from algorithm.models.clip_model import get_text_embedding
+        return get_text_embedding(text)
+    except Exception as exc:
+        print(f"[SEARCH WARN] Local text embedding failed, falling back to HTTP: {exc}")
+        resp = requests.post(f"{ALGO_API_BASE}/api/algo/embed/text", json={"text": text}, timeout=15)
+        resp.raise_for_status()
+        emb = resp.json()["data"]["embedding"]
+        return np.array(emb, dtype=np.float32)
 
 
 def apply_adapter_from_algo(embeddings: np.ndarray, adapter_path: str = "") -> np.ndarray:
-    is_1d = (embeddings.ndim == 1)
-    if is_1d:
-        embeddings_list = [embeddings.tolist()]
-    else:
-        embeddings_list = embeddings.tolist()
-    
-    payload = {"embeddings": embeddings_list}
-    if adapter_path:
-        payload["adapter_path"] = adapter_path
+    try:
+        from algorithm.models.adapter import apply_adapter
+        return apply_adapter(embeddings, adapter_path=adapter_path)
+    except Exception as exc:
+        print(f"[SEARCH WARN] Local adapter execution failed, falling back to HTTP: {exc}")
+        is_1d = (embeddings.ndim == 1)
+        if is_1d:
+            embeddings_list = [embeddings.tolist()]
+        else:
+            embeddings_list = embeddings.tolist()
         
-    resp = requests.post(f"{ALGO_API_BASE}/api/algo/adapt", json=payload, timeout=20)
-    resp.raise_for_status()
-    adapted_list = resp.json()["data"]["embeddings"]
-    
-    res = np.array(adapted_list, dtype=np.float32)
-    if is_1d:
-        return res[0]
-    return res
+        payload = {"embeddings": embeddings_list}
+        if adapter_path:
+            payload["adapter_path"] = adapter_path
+            
+        resp = requests.post(f"{ALGO_API_BASE}/api/algo/adapt", json=payload, timeout=20)
+        resp.raise_for_status()
+        adapted_list = resp.json()["data"]["embeddings"]
+        
+        res = np.array(adapted_list, dtype=np.float32)
+        if is_1d:
+            return res[0]
+        return res
 
 
 def get_presigned_url(url: str) -> str:
-    import re
-    import boto3
-    # Match standard S3 HTTP endpoint patterns
-    # e.g., https://bucket-name.s3.region-name.amazonaws.com/key-name
-    # or https://bucket-name.s3.amazonaws.com/key-name
-    match = re.match(r"https?://([^.]+)\.s3[^/]*\.amazonaws\.com/(.+)", url)
-    if not match:
-        return url
-    
+    if not url:
+        return ""
     import urllib.parse
-    bucket = match.group(1)
-    key = urllib.parse.unquote(match.group(2))
+
+    # Return proxy endpoint so image content is fetched server-side from S3 and streamed directly to browser
+    if url.startswith("http") or url.startswith("s3://"):
+        encoded_url = urllib.parse.quote(url, safe="")
+        return f"/api/image-proxy?url={encoded_url}"
     
-    try:
-        s3_region = os.getenv("UKAHT_S3_REGION")
-        s3_client = boto3.client("s3", region_name=s3_region) if s3_region else boto3.client("s3")
-        presigned_url = s3_client.generate_presigned_url(
-            'get_object',
-            Params={'Bucket': bucket, 'Key': key},
-            ExpiresIn=3600
-        )
-        return presigned_url
-    except Exception as e:
-        print(f"[WARN] S3 pre-signing failed for {url}: {e}")
-        return url
+    encoded_url = urllib.parse.quote(url, safe="")
+    return f"/api/image-proxy?url={encoded_url}"
 
 
 def _row_to_result(row: dict, score: float) -> dict:
     url = row["url"]
     if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
         url = get_presigned_url(url)
+    clean_cat = row.get("cluster_label") or row.get("category") or "Antarctic Heritage"
+    
+    title = row.get("title") or "Untitled"
+    base = row.get("base_code") or "N/A"
+    year = row.get("shooting_year") or "Unknown Year"
+    sub_type = row.get("subject_type") or "N/A"
+    credit = row.get("copyright") or "UKAHT Collection"
+    raw_desc = row.get("description") or ""
+
+    # Rich composite concatenation of ALL metadata fields for Semantic Search & RAG
+    composite_desc = (
+        f"[Title: {title}] | [Base: Base {base}] | [Shooting Year: {year}] | "
+        f"[Category: {clean_cat}] | [Subject Type: {sub_type}] | [Credit: {credit}] | "
+        f"[Visual Content: {raw_desc}]"
+    )
+
     return {
         "id": row["id"],
         "url": url,
-        "title": row["title"],
-        "category": row["category"],
-        "description": row["description"],
+        "title": title,
+        "category": clean_cat,
+        "cluster_label": clean_cat,
+        "base_code": base,
+        "subject_type": sub_type,
+        "shooting_year": year,
+        "copyright": credit,
+        "description": composite_desc,
+        "raw_caption": raw_desc,
         "score": round(score, 4),
     }
 
@@ -273,71 +291,75 @@ def recommend(
     return results
 
 
-def sql_metadata_filter(
-    category: Optional[str] = None,
-    keyword: Optional[str] = None,
-    base_code: Optional[str] = None,
-    subject_type: Optional[str] = None,
-    shooting_year: Optional[str] = None,
-    copyright: Optional[str] = None,
-    data_source: Optional[str] = None,
-) -> list[dict]:
+def execute_sql_query(where_clause: Optional[str] = None, sql: Optional[str] = None) -> list[dict]:
     """
-    Pure SQL metadata filter — used by the LLM agent when it detects
-    a structured query (e.g. 'show me all Equipment photos').
-
-    Args:
-        category:      Exact category string to match (case-insensitive).
-        keyword:       Substring to search in title or description.
-        base_code:     Exact base code (e.g., 'E', 'W', 'A').
-        subject_type:  Substring or exact subject type.
-        shooting_year: Exact year or season string.
-        copyright:     Copyright/credit holder substring or exact match.
-        data_source:   Data source ('original' or 'new_addition').
-
-    Returns:
-        List of matching asset dicts (no score field).
+    Direct Text-to-SQL execution engine:
+    Allows AI Agent to generate raw PostgreSQL WHERE clauses or SELECT statements dynamically.
+    Includes safety validation to enforce read-only access.
     """
-    from backend.db.database import get_connection
+    from backend.db.database import get_connection, RealDictCursor
+    import re
 
     init_db()
-    conditions = []
-    params = []
 
-    if category:
-        conditions.append("LOWER(category) = LOWER(?)")
-        params.append(category)
-    if keyword:
-        conditions.append("(title LIKE ? OR description LIKE ?)")
-        params.extend([f"%{keyword}%", f"%{keyword}%"])
-    if base_code:
-        conditions.append("LOWER(base_code) = LOWER(?)")
-        params.append(base_code)
-    if subject_type:
-        conditions.append("LOWER(subject_type) LIKE LOWER(?)")
-        params.append(f"%{subject_type}%")
-    if shooting_year:
-        normalized_year = shooting_year.replace("-", "_")
-        conditions.append("(shooting_year = ? OR shooting_year = ?)")
-        params.extend([shooting_year, normalized_year])
-    if copyright:
-        conditions.append("LOWER(copyright) LIKE LOWER(?)")
-        params.append(f"%{copyright}%")
-    if data_source:
-        conditions.append("LOWER(data_source) = LOWER(?)")
-        params.append(data_source)
-
-    where_clause = ("WHERE " + " AND ".join(conditions)) if conditions else ""
-    sql = f"SELECT id, url, title, category, description, base_code, subject_type, shooting_year, copyright, data_source FROM assets {where_clause}"
+    if sql and sql.strip():
+        clean_sql = sql.strip()
+        # Security check: must be read-only SELECT
+        if not re.match(r'(?i)^\s*SELECT\b', clean_sql) or any(w in clean_sql.upper() for w in ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'TRUNCATE']):
+            raise ValueError("Only read-only SELECT queries are permitted.")
+        query = clean_sql
+    elif where_clause and where_clause.strip():
+        clean_where = where_clause.strip()
+        if any(w in clean_where.upper() for w in ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'TRUNCATE', ';']):
+            raise ValueError("Unsafe SQL keywords detected in WHERE clause.")
+        if not clean_where.upper().startswith("WHERE"):
+            clean_where = f"WHERE {clean_where}"
+        query = f"SELECT id, url, title, category, description, cluster_label, base_code, subject_type, shooting_year, copyright, data_source FROM assets {clean_where} LIMIT 100"
+    else:
+        query = "SELECT id, url, title, category, description, cluster_label, base_code, subject_type, shooting_year, copyright, data_source FROM assets ORDER BY shooting_year ASC LIMIT 100"
 
     with get_connection() as conn:
-        rows = conn.execute(sql, params).fetchall()
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
 
     results = []
     for r in rows:
         d = dict(r)
-        url = d["url"]
+        url = d.get("url", "")
         if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
             d["url"] = get_presigned_url(url)
+        d["category"] = d.get("cluster_label") or d.get("category") or "Antarctic Heritage"
         results.append(d)
     return results
+
+
+def sql_metadata_filter(
+    keyword: Optional[str] = None,
+    **filters
+) -> list[dict]:
+    """
+    Fallback Metadata Filter — converts filter dictionary to dynamic SQL WHERE clause.
+    """
+    where_parts = []
+    for k, v in filters.items():
+        if v and str(v).strip():
+            val = str(v).strip()
+            # Clean natural language prefixes like 'Base E' -> 'E'
+            val = re.sub(r'(?i)^(base|station)\s+', '', val)
+            if re.search(r'\d{4}', val) and ('<' in val or '>' in val):
+                m = re.search(r'([<>=]+)\s*(\d{4})', val)
+                if m:
+                    where_parts.append(f"{k} {m.group(1)} '{m.group(2)}'")
+            elif re.search(r'\d{4}', val):
+                m = re.search(r'\d{4}', val)
+                where_parts.append(f"{k} ILIKE '%%{m.group(0)}%%'")
+            else:
+                where_parts.append(f"{k} ILIKE '%%{val}%%'")
+
+    if keyword and str(keyword).strip():
+        kw = str(keyword).strip()
+        where_parts.append(f"(title ILIKE '%%{kw}%%' OR description ILIKE '%%{kw}%%' OR category ILIKE '%%{kw}%%')")
+
+    where_clause = " AND ".join(where_parts) if where_parts else None
+    return execute_sql_query(where_clause=where_clause)

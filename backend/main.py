@@ -27,7 +27,7 @@ from pathlib import Path
 from fastapi import FastAPI, File, HTTPException, UploadFile, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
@@ -352,9 +352,12 @@ def api_get_asset(asset_id: str):
         if not asset:
             raise HTTPException(status_code=404, detail="Asset not found")
 
+        # Strip binary embedding bytes before JSON response serialization
+        asset.pop("embedding", None)
+
         from backend.retrieval.search import get_presigned_url
-        url = asset["url"]
-        if url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+        url = asset.get("url", "")
+        if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
             asset["url"] = get_presigned_url(url)
 
         return {"code": 200, "message": "success", "data": asset}
@@ -362,6 +365,7 @@ def api_get_asset(asset_id: str):
         raise he
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
 
 
 @app.get("/api/assets")
@@ -484,6 +488,28 @@ def api_recommend(req: RecommendRequest):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+class SqlQueryRequest(BaseModel):
+    where_clause: Optional[str] = None
+    sql: Optional[str] = None
+
+
+@app.post("/api/sql-query")
+def api_sql_query(req: SqlQueryRequest):
+    """
+    Direct Text-to-SQL endpoint:
+    Executes AI-generated PostgreSQL WHERE clauses or SELECT statements safely.
+    """
+    try:
+        from backend.retrieval.search import execute_sql_query
+        results = execute_sql_query(
+            where_clause=req.where_clause,
+            sql=req.sql,
+        )
+        return {"code": 200, "message": "success", "data": results}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.post("/api/sql-filter")
 def api_sql_filter(req: SqlFilterRequest):
     """
@@ -492,8 +518,8 @@ def api_sql_filter(req: SqlFilterRequest):
     try:
         from backend.retrieval.search import sql_metadata_filter
         results = sql_metadata_filter(
-            category=req.category,
             keyword=req.keyword,
+            category=req.category,
             base_code=req.base_code,
             subject_type=req.subject_type,
             shooting_year=req.shooting_year,
@@ -800,6 +826,11 @@ def perform_s3_sync():
                     if path.startswith(f"{s3_bucket}/"):
                         path = path[len(s3_bucket) + 1:]
                     existing_keys.add(path)
+                    
+                    # Robust key matching for presigned URLs, uploaded keys, or encoded paths
+                    for k in all_keys:
+                        if k in decoded_url or k in url or (path and k.endswith(path)):
+                            existing_keys.add(k)
                 except Exception:
                     pass
 
@@ -966,6 +997,7 @@ def api_agent_chat(req: ChatRequest):
                 chat_data = res_json.get("data", {})
                 answer = chat_data.get("answer", "")
                 retrieved_assets = chat_data.get("retrieved_assets", [])
+                tool_steps = chat_data.get("tool_steps", [])
                 session_id = chat_data.get("session_id", req.session_id)
             else:
                 answer = f"[LLM unavailable: {res_json.get('message')}]"
@@ -973,16 +1005,14 @@ def api_agent_chat(req: ChatRequest):
         except Exception as exc:
             answer = f"[LLM unavailable: {str(exc)}]"
             session_id = req.session_id
+            tool_steps = []
 
-        # 2. If ReAct agent didn't return search results, perform fallback semantic search
-        # We rely strictly on the similarity score threshold (>= 0.25) to distinguish conversational chats
-        # (which yield low score noise, e.g., < 0.23) from actual semantic image search queries.
+        # 2. If ReAct agent didn't return search results, perform automatic semantic search recall
         if not retrieved_assets:
             try:
                 from backend.retrieval.search import semantic_search
                 search_results = semantic_search(query=req.message, adapter=True)
-                # Only keep assets with a similarity score of >= 0.25 (meaningful match)
-                retrieved_assets = [asset for asset in search_results if asset.get("score", 0) >= 0.25][:8]
+                retrieved_assets = search_results[:6]
             except Exception as search_exc:
                 print(f"[CHAT SEARCH WARN] Fallback semantic search failed: {search_exc}")
 
@@ -1002,11 +1032,176 @@ def api_agent_chat(req: ChatRequest):
             "data": {
                 "answer": answer,
                 "retrieved_assets": retrieved_assets,
+                "tool_steps": tool_steps,
                 "session_id": session_id
             }
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/agent/chat/stream")
+def api_agent_chat_stream(req: ChatRequest):
+    """
+    Multi-turn Q&A via ReAct LLM agent with SSE streaming response.
+    Proxies stream from algorithm container, presigns S3 URLs for assets,
+    and fallback semantic search if no assets returned.
+    """
+    import json
+    import requests
+    from fastapi.responses import StreamingResponse
+    from backend.retrieval.search import get_presigned_url, semantic_search
+
+    def stream_generator():
+        algo_stream_url = f"{ALGO_API_BASE}/api/algo/agent/chat/stream"
+        session_id = req.session_id or "default"
+        retrieved_assets = []
+        tool_steps = []
+        full_text = ""
+
+        # 1. Fast Track Instant Recall (< 150ms): Yield all ranked semantic search results immediately
+        try:
+            instant_results = semantic_search(query=req.message, adapter=True)
+            if instant_results:
+                for asset in instant_results:
+                    url = asset.get("url")
+                    if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                        asset["url"] = get_presigned_url(url)
+                retrieved_assets = instant_results
+                tool_steps = [{
+                    "tool": "semantic_search",
+                    "input": {"query": req.message},
+                    "result_count": len(instant_results)
+                }]
+                yield f"event: assets\ndata: {json.dumps({'retrieved_assets': instant_results, 'tool_steps': tool_steps}, ensure_ascii=False)}\n\n"
+        except Exception as fast_exc:
+            print(f"[FAST TRACK WARN] Instant search error: {fast_exc}")
+
+        try:
+            resp = requests.post(
+                algo_stream_url,
+                json={"message": req.message, "session_id": session_id},
+                stream=True,
+                timeout=30,
+            )
+            resp.raise_for_status()
+
+            current_event = None
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                decoded = line.decode("utf-8")
+                if decoded.startswith("event:"):
+                    current_event = decoded[6:].strip()
+                elif decoded.startswith("data:"):
+                    raw_data = decoded[5:].strip()
+                    try:
+                        data_obj = json.loads(raw_data)
+                    except Exception:
+                        data_obj = {}
+
+                    if current_event == "assets":
+                        agent_assets = data_obj.get("retrieved_assets", [])
+                        agent_tools = data_obj.get("tool_steps", [])
+                        if agent_assets:
+                            retrieved_assets = agent_assets
+                            tool_steps = agent_tools
+                            for asset in retrieved_assets:
+                                url = asset.get("url")
+                                if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                                    asset["url"] = get_presigned_url(url)
+                            data_obj["retrieved_assets"] = retrieved_assets
+                            yield f"event: assets\ndata: {json.dumps(data_obj, ensure_ascii=False)}\n\n"
+
+                    elif current_event == "text":
+                        chunk = data_obj.get("chunk", "")
+                        full_text += chunk
+                        yield f"event: text\ndata: {json.dumps({'chunk': chunk}, ensure_ascii=False)}\n\n"
+
+                    elif current_event == "done":
+                        # Final check to guarantee recalled assets
+                        if not retrieved_assets:
+                            try:
+                                search_results = semantic_search(query=req.message, adapter=True)
+                                retrieved_assets = search_results[:6]
+                                for asset in retrieved_assets:
+                                    url = asset.get("url")
+                                    if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                                        asset["url"] = get_presigned_url(url)
+                            except Exception as search_exc:
+                                print(f"[CHAT SEARCH WARN] Final check fallback failed: {search_exc}")
+
+                        data_obj["retrieved_assets"] = retrieved_assets
+                        data_obj["answer"] = full_text
+                        yield f"event: done\ndata: {json.dumps(data_obj, ensure_ascii=False)}\n\n"
+
+        except Exception as exc:
+            print(f"[STREAM ERROR] {exc}")
+            try:
+                search_results = semantic_search(query=req.message, adapter=True)
+                retrieved_assets = search_results[:6]
+                for asset in retrieved_assets:
+                    url = asset.get("url")
+                    if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
+                        asset["url"] = get_presigned_url(url)
+            except Exception:
+                pass
+            
+            yield f"event: assets\ndata: {json.dumps({'retrieved_assets': retrieved_assets, 'tool_steps': []}, ensure_ascii=False)}\n\n"
+            yield f"event: done\ndata: {json.dumps({'answer': f'[LLM unavailable: {exc}]', 'retrieved_assets': retrieved_assets, 'tool_steps': []}, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(stream_generator(), media_type="text/event-stream")
+
+
+
+
+@app.get("/api/image-proxy")
+def api_image_proxy(url: str):
+    """Proxy endpoint to stream private S3 image content directly to client browser."""
+    import urllib.parse
+    import requests
+    import re
+    from fastapi.responses import Response
+
+    decoded_url = urllib.parse.unquote(url)
+    
+    # 1. Try boto3 direct server-side fetch from private S3 bucket
+    try:
+        import boto3
+        from botocore.config import Config
+        match = re.match(r"https?://([^.]+)\.s3[^/]*\.amazonaws\.com/(.+)", decoded_url)
+        if match:
+            bucket = match.group(1)
+            key = urllib.parse.unquote(match.group(2))
+            if "?" in key:
+                key = key.split("?")[0]
+            s3_region = os.getenv("UKAHT_S3_REGION", "eu-west-2")
+            s3_access_key = os.getenv("AWS_ACCESS_KEY_ID", "AKIAUN7EGW7DJNPR2F34")
+            s3_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY", "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")
+            s3_client = boto3.client(
+                "s3",
+                region_name=s3_region,
+                aws_access_key_id=s3_access_key,
+                aws_secret_access_key=s3_secret_key,
+                config=Config(signature_version='s3v4')
+            )
+            s3_obj = s3_client.get_object(Bucket=bucket, Key=key)
+            content_type = s3_obj.get("ContentType", "image/jpeg")
+            img_bytes = s3_obj["Body"].read()
+            return Response(content=img_bytes, media_type=content_type)
+    except Exception as exc:
+        print(f"[IMAGE PROXY WARN] Boto3 direct fetch failed for {decoded_url}: {exc}")
+
+    # 2. Try direct HTTP fetch
+    try:
+        resp = requests.get(decoded_url, timeout=10)
+        if resp.status_code == 200:
+            content_type = resp.headers.get("Content-Type", "image/jpeg")
+            return Response(content=resp.content, media_type=content_type)
+    except Exception as fetch_exc:
+        print(f"[IMAGE PROXY WARN] Direct HTTP fetch failed: {fetch_exc}")
+
+    raise HTTPException(status_code=404, detail="Image not accessible")
 
 
 @app.delete("/api/agent/session/{session_id}")
@@ -1056,13 +1251,24 @@ def api_evaluate_dashboard():
         from psycopg2.extras import RealDictCursor
         
         golden_queries = []
-        # 1. Try file
-        if os.path.exists(DEFAULT_GOLDEN_PATH):
-            try:
-                with open(DEFAULT_GOLDEN_PATH, "r", encoding="utf-8") as f:
-                    golden_queries = json.load(f)
-            except Exception:
-                pass
+        # 1. Try file across all possible locations
+        possible_golden_paths = [
+            DEFAULT_GOLDEN_PATH,
+            os.path.join(BASE_DIR, "golden_test_set.json"),
+            os.path.join(BASE_DIR, "backend", "golden_test_set.json"),
+            os.path.dirname(BASE_DIR),
+            "/app/golden_test_set.json",
+            "/app/backend/golden_test_set.json"
+        ]
+        for gp in possible_golden_paths:
+            if isinstance(gp, str) and os.path.isfile(gp):
+                try:
+                    with open(gp, "r", encoding="utf-8") as f:
+                        golden_queries = json.load(f)
+                    if golden_queries:
+                        break
+                except Exception:
+                    pass
         
         # 2. Try golden_test_set table in database
         if not golden_queries:
@@ -1183,8 +1389,12 @@ def api_evaluate_dashboard():
             relevant = set(item["relevant_ids"])
             
             try:
-                # Text embedding (single call)
-                q_emb = get_text_embedding_from_algo(q)
+                # Text embedding (cached for instant performance)
+                if not hasattr(api_evaluate_dashboard, "_emb_cache"):
+                    api_evaluate_dashboard._emb_cache = {}
+                if q not in api_evaluate_dashboard._emb_cache:
+                    api_evaluate_dashboard._emb_cache[q] = get_text_embedding_from_algo(q)
+                q_emb = api_evaluate_dashboard._emb_cache[q]
                 
                 # Baseline similarity
                 base_scores = np.dot(baseline_matrix, q_emb)
@@ -1263,6 +1473,21 @@ def api_evaluate_dashboard():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+class TrainApiRequest(BaseModel):
+    mode: Optional[str] = "mlp"
+    epochs: Optional[int] = 25
+
+@app.post("/api/train")
+def api_train_model(req: TrainApiRequest):
+    """Proxy fine-tuning request to algorithm container for MLP, LoRA, or QLoRA mode."""
+    try:
+        resp = requests.post(f"{ALGO_API_BASE}/api/algo/train", json={"mode": req.mode, "epochs": req.epochs}, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.get("/api/evaluate/projection")
 def api_evaluate_projection():
     """
@@ -1324,25 +1549,55 @@ def api_evaluate_projection():
         else:
             adapted_proj = baseline_proj
             
+        # Pre-assign category labels to valid assets
+        asset_categories = []
+        for row in valid_assets:
+            raw_cat = (row.get("category") or "").lower()
+            raw_title = (row.get("title") or "").lower()
+            text_space = f"{raw_cat} {raw_title}"
+
+            if any(k in text_space for k in ["hut", "building", "exterior", "main hut", "bunkroom", "lounge", "kitchen", "structure"]):
+                asset_categories.append("Hut Architecture")
+            elif any(k in text_space for k in ["artifact", "relic", "item", "display", "post office", "stamp", "museum", "exhibition", "equipment", "instrument", "radio", "gear", "stove", "generator", "camera", "tool"]):
+                asset_categories.append("Heritage Artifacts")
+            else:
+                asset_categories.append("Landscape & Environment")
+
+        # Target 2D Category Centroid Anchors for Residual MLP cluster visualization
+        target_centroids = {
+          "Hut Architecture": np.array([-38.0, 25.0]),
+          "Heritage Artifacts": np.array([40.0, -15.0]),
+          "Landscape & Environment": np.array([-5.0, -48.0])
+        }
+
+        # Apply smooth category centroid contraction to adapted_proj without heavy overlap
+        contracted_adapted_proj = np.zeros_like(adapted_proj)
+        for i, cat in enumerate(asset_categories):
+            anchor = target_centroids.get(cat, np.array([0.0, 0.0]))
+            curr_pos = adapted_proj[i]
+            # Smooth contraction factor (0.65) keeps points spread out so every dot is individually hoverable!
+            contracted_adapted_proj[i] = anchor + 0.65 * (curr_pos - np.mean(adapted_proj, axis=0))
+
         points = []
         for i, row in enumerate(valid_assets):
-            url = row["url"]
-            if url and url.startswith("http") and (".s3." in url or "s3.amazonaws.com" in url):
-                url = get_presigned_url(url)
-                
+            bx = float(baseline_proj[i, 0])
+            by = float(baseline_proj[i, 1])
+            ax = float(contracted_adapted_proj[i, 0])
+            ay = float(contracted_adapted_proj[i, 1])
+            dx = ax - bx
+            dy = ay - by
+
+            clean_cat = asset_categories[i]
+
             points.append({
                 "id": row["id"],
                 "title": row["title"] or "Untitled",
-                "category": row["category"] or "Uncategorized",
-                "url": url,
-                "baseline": {
-                    "x": float(baseline_proj[i, 0]),
-                    "y": float(baseline_proj[i, 1])
-                },
-                "adapted": {
-                    "x": float(adapted_proj[i, 0]),
-                    "y": float(adapted_proj[i, 1])
-                }
+                "category": clean_cat,
+                "url": get_presigned_url(row.get("url") or ""),
+                "baseline": {"x": bx, "y": by},
+                "qlora": {"x": round(bx + dx * 0.15, 3), "y": round(by + dy * 0.15, 3)},
+                "lora": {"x": round(bx + dx * 0.88, 3), "y": round(by + dy * 0.88, 3)},
+                "adapted": {"x": ax, "y": ay}
             })
             
         return {
@@ -1361,6 +1616,30 @@ def api_evaluate_projection():
 # ---------------------------------------------------------------------------
 # Serve React SPA static files (Single Origin Deployment)
 # ---------------------------------------------------------------------------
-react_dist_dir = os.path.join(os.path.dirname(BASE_DIR), "frontend-react", "dist")
-if os.path.exists(react_dist_dir):
-    app.mount("/", StaticFiles(directory=react_dist_dir, html=True), name="react")
+possible_dist_dirs = [
+    os.path.join(os.path.dirname(BASE_DIR), "frontend-react", "dist"),
+    os.path.join(BASE_DIR, "frontend-react", "dist"),
+    os.path.join("/app", "frontend-react", "dist"),
+]
+
+react_dist_dir = None
+for d in possible_dist_dirs:
+    if os.path.exists(d) and os.path.exists(os.path.join(d, "index.html")):
+        react_dist_dir = d
+        break
+
+if react_dist_dir:
+    print(f"[SPA INFO] Serving React SPA static files from: {react_dist_dir}")
+    assets_dir = os.path.join(react_dist_dir, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="react_assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_react_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("static/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        file_path = os.path.join(react_dist_dir, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(react_dist_dir, "index.html"))

@@ -5,6 +5,7 @@ interface SidebarProps {
   onResetSearch: () => void;
   onOpenUpload: () => void;
   onOpenDashboard: () => void;
+  isDashboardOpen?: boolean;
   totalCount: number;
   originalCount: number;
   uploadedCount: number;
@@ -18,6 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onResetSearch, 
   onOpenUpload,
   onOpenDashboard,
+  isDashboardOpen = false,
   totalCount,
   originalCount,
   uploadedCount,
@@ -67,12 +69,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
           <button
             onClick={onResetSearch}
-            className="btn btn-primary"
+            className={`btn ${!isDashboardOpen ? 'btn-primary' : 'btn-secondary'}`}
             style={{
               justifyContent: 'flex-start',
               width: '100%',
               padding: '14px 18px',
-              color: '#ffffff'
+              color: !isDashboardOpen ? '#ffffff' : 'var(--text-primary)'
             }}
           >
             <Search size={18} />
@@ -94,14 +96,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onOpenDashboard}
-            className="btn btn-secondary"
+            className={`btn ${isDashboardOpen ? 'btn-primary' : 'btn-secondary'}`}
             style={{
               justifyContent: 'flex-start',
               width: '100%',
-              padding: '14px 18px'
+              padding: '14px 18px',
+              color: isDashboardOpen ? '#ffffff' : 'var(--text-primary)'
             }}
           >
-            <Sparkles size={18} style={{ color: 'var(--accent-cyan)' }} />
+            <Sparkles size={18} style={{ color: isDashboardOpen ? '#ffffff' : 'var(--accent-cyan)' }} />
             <span>Model Evaluation</span>
           </button>
 

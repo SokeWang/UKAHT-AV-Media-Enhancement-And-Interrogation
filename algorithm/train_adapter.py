@@ -42,10 +42,9 @@ except ImportError:
 
 
 def load_dataset_embeddings():
-    """Load all asset embeddings and categories from database (PostgreSQL or SQLite)."""
+    """Load all asset embeddings, descriptions, and categories from database."""
     assets = []
     
-    # Try PostgreSQL across common docker/local hosts and db names
     hosts_to_try = []
     if os.getenv("POSTGRES_HOST"):
         hosts_to_try.append(os.getenv("POSTGRES_HOST"))
@@ -72,7 +71,7 @@ def load_dataset_embeddings():
                         connect_timeout=3
                     )
                     cursor = conn.cursor(cursor_factory=RealDictCursor)
-                    cursor.execute("SELECT id, title, category, base_code, embedding FROM assets WHERE embedding IS NOT NULL")
+                    cursor.execute("SELECT id, title, category, description, base_code, embedding FROM assets WHERE embedding IS NOT NULL")
                     rows = cursor.fetchall()
                     conn.close()
                     
@@ -81,10 +80,12 @@ def load_dataset_embeddings():
                             emb_bytes = row["embedding"]
                             if emb_bytes is not None:
                                 emb = np.frombuffer(emb_bytes, dtype=np.float32)
+                                desc = (row["description"] or row["title"] or "").strip()
                                 assets.append({
                                     "id": row["id"],
                                     "category": row["category"] or "default",
                                     "base_code": row["base_code"] or "default",
+                                    "description": desc,
                                     "embedding": emb
                                 })
                         print(f"[DATA] Successfully loaded {len(assets)} embeddings from PostgreSQL database at '{host}:{pg_port}/{db_name}'.")
@@ -94,48 +95,31 @@ def load_dataset_embeddings():
     except ImportError:
         print("[WARN] psycopg2 module not available.")
 
-    # Fallback to SQLite if PostgreSQL did not return embeddings
-    sqlite_paths = [
-        os.path.join(PROJECT_ROOT, "backend", "db.sqlite"),
-        os.path.join(PROJECT_ROOT, "backend", "db", "db.sqlite"),
-        "/app/backend/db.sqlite",
-        "/app/backend/db/db.sqlite"
-    ]
-    for db_path in sqlite_paths:
-        if os.path.exists(db_path):
-            try:
-                import sqlite3
-                conn = sqlite3.connect(db_path)
-                cursor = conn.cursor()
-                cursor.execute("SELECT id, title, category, base_code, embedding FROM assets WHERE embedding IS NOT NULL")
-                rows = cursor.fetchall()
-                conn.close()
-                if rows:
-                    for row in rows:
-                        emb_bytes = row[4]
-                        if emb_bytes is not None:
-                            emb = np.frombuffer(emb_bytes, dtype=np.float32)
-                            assets.append({
-                                "id": row[0],
-                                "category": row[2] or "default",
-                                "base_code": row[3] or "default",
-                                "embedding": emb
-                            })
-                    print(f"[DATA] Loaded {len(assets)} embeddings from SQLite database ('{db_path}').")
-                    return assets
-            except Exception as sqlite_err:
-                print(f"[WARN] Failed reading SQLite at {db_path}: {sqlite_err}")
-
     return assets
 
 
 class TripletDataset(Dataset):
-    """Constructs (Anchor, Positive, Hard Negative) embedding triplets with fine-grained composite key grouping."""
-    def __init__(self, assets, num_samples=1000):
+    """Constructs (Image Anchor, Text Positive, Hard Text Negative) cross-modal embedding triplets."""
+    def __init__(self, assets, num_samples=2000):
         self.assets = assets
         self.num_samples = num_samples
         
-        # Group by fine-grained composite key: (category, base_code)
+        # Precompute CLIP text embeddings for text descriptions if available
+        text_cache = {}
+        try:
+            from algorithm.models.clip_model import get_text_embedding
+            print("[DATA] Pre-encoding CLIP text embeddings for image descriptions...")
+            for a in assets:
+                desc = a["description"]
+                if desc and desc not in text_cache:
+                    t_emb = get_text_embedding(desc)
+                    text_cache[desc] = t_emb / (np.linalg.norm(t_emb) + 1e-8)
+        except Exception as e:
+            print(f"[WARN] CLIP text embedding generation skipped: {e}")
+
+        self.text_cache = text_cache
+        
+        # Group by composite key: (category, base_code)
         self.groups = {}
         for idx, a in enumerate(assets):
             composite_key = f"{a['category']}||{a['base_code']}"
@@ -149,60 +133,50 @@ class TripletDataset(Dataset):
         return self.num_samples
 
     def __getitem__(self, idx):
-        # Pick anchor key
-        if len(self.keys) > 1:
-            key_a = random.choice([k for k in self.keys if len(self.groups[k]) >= 1])
-        else:
-            key_a = self.keys[0]
-            
-        # Pick anchor
-        anchor_idx = random.choice(self.groups[key_a])
-        anchor_emb = self.assets[anchor_idx]["embedding"]
+        anchor_idx = random.randint(0, len(self.assets) - 1)
+        anchor_asset = self.assets[anchor_idx]
+        anchor_emb = anchor_asset["embedding"]
         
-        # Pick fine-grained positive (same composite key or high initial similarity >= 0.70)
-        same_group_indices = [i for i in self.groups[key_a] if i != anchor_idx]
-        if same_group_indices:
-            pos_idx = random.choice(same_group_indices)
-            pos_emb = self.assets[pos_idx]["embedding"]
+        # Positive: Matching text embedding for this asset if cached, else same-group image
+        desc = anchor_asset["description"]
+        if desc in self.text_cache:
+            pos_emb = self.text_cache[desc]
         else:
-            # Synthetic positive with slight perturbation
-            noise = np.random.normal(0, 0.015, anchor_emb.shape).astype(np.float32)
-            pos_emb = anchor_emb + noise
-            pos_emb = pos_emb / np.linalg.norm(pos_emb)
+            composite_key = f"{anchor_asset['category']}||{anchor_asset['base_code']}"
+            same_group = [i for i in self.groups.get(composite_key, []) if i != anchor_idx]
+            if same_group:
+                pos_emb = self.assets[random.choice(same_group)]["embedding"]
+            else:
+                noise = np.random.normal(0, 0.01, anchor_emb.shape).astype(np.float32)
+                pos_emb = (anchor_emb + noise) / np.linalg.norm(anchor_emb + noise)
 
-        # Hard Negative Mining: sample candidates from DIFFERENT composite keys
-        diff_keys = [k for k in self.keys if k != key_a]
-        if diff_keys:
-            candidate_indices = []
-            for _ in range(min(8, len(diff_keys))):
-                k_n = random.choice(diff_keys)
-                candidate_indices.append(random.choice(self.groups[k_n]))
+        # Hard Negative: sample candidates from different assets
+        neg_candidates = []
+        for _ in range(8):
+            n_idx = random.randint(0, len(self.assets) - 1)
+            if n_idx != anchor_idx:
+                neg_candidates.append(self.assets[n_idx])
                 
-            # Find the candidate with highest similarity (hardest negative)
-            best_neg_idx = candidate_indices[0]
-            max_sim = -1.0
-            for c_idx in candidate_indices:
-                sim = float(np.dot(anchor_emb, self.assets[c_idx]["embedding"]))
-                if sim > max_sim:
-                    max_sim = sim
-                    best_neg_idx = c_idx
-                    
-            neg_emb = self.assets[best_neg_idx]["embedding"]
-        else:
-            # Pick a random vector with negative direction
-            neg_emb = -anchor_emb + np.random.normal(0, 0.1, anchor_emb.shape).astype(np.float32)
-            neg_emb = neg_emb / np.linalg.norm(neg_emb)
+        # Find hardest negative (highest similarity to anchor)
+        best_neg_emb = neg_candidates[0]["embedding"]
+        max_sim = -1.0
+        for cand in neg_candidates:
+            c_desc = cand["description"]
+            c_emb = self.text_cache.get(c_desc, cand["embedding"])
+            sim = float(np.dot(anchor_emb, c_emb))
+            if sim > max_sim:
+                max_sim = sim
+                best_neg_emb = c_emb
 
         return (
             torch.tensor(anchor_emb, dtype=torch.float32),
             torch.tensor(pos_emb, dtype=torch.float32),
-            torch.tensor(neg_emb, dtype=torch.float32)
+            torch.tensor(best_neg_emb, dtype=torch.float32)
         )
 
 
 def info_nce_loss(out_a, out_p, temperature=0.07):
     """Compute InfoNCE contrastive loss over a batch of (Anchor, Positive) pairs."""
-    # Cosine similarity matrix: [B, B]
     sim_matrix = torch.matmul(out_a, out_p.T) / temperature
     labels = torch.arange(sim_matrix.size(0), device=sim_matrix.device)
     loss_a2p = nn.functional.cross_entropy(sim_matrix, labels)
@@ -221,7 +195,7 @@ def train(mode="mlp", epochs=20, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
         return
 
     # Dataset & DataLoader
-    dataset = TripletDataset(assets, num_samples=max(500, len(assets) * 50))
+    dataset = TripletDataset(assets, num_samples=2000)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     # Build model
@@ -254,10 +228,9 @@ def train(mode="mlp", epochs=20, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
             else:
                 loss_main = criterion(out_a, out_p, out_n)
                 
-            # CLIP Multi-Modal Alignment Preservation Regularization
-            # Prevents model from rotating away from CLIP text-image space, boosting Text-to-Image MAP
+            # CLIP Multi-Modal Alignment Regularization with balanced coefficient
             loss_reg = (1.0 - torch.nn.functional.cosine_similarity(out_a, anchor, dim=-1)).mean()
-            loss = loss_main + 1.0 * loss_reg
+            loss = loss_main + 0.01 * loss_reg
                 
             loss.backward()
             optimizer.step()
@@ -269,18 +242,29 @@ def train(mode="mlp", epochs=20, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
         if epoch % max(1, epochs // 5) == 0 or epoch == epochs:
             print(f"  Epoch [{epoch:2d}/{epochs:2d}] -> {loss_type.capitalize()} Loss: {avg_loss:.6f}")
 
-    # Determine default save path
-    if not output_path:
-        possible_paths = [
-            os.path.join(PROJECT_ROOT, "backend", "static", "models", "adapter.pth"),
-            "/app/backend/static/models/adapter.pth",
-        ]
-        output_path = possible_paths[0]
+    # Save trained model weights across all expected mount paths
+    target_paths = [
+        os.path.join(PROJECT_ROOT, "backend", "static", "models", "adapter.pth"),
+        "/app/backend/static/models/adapter.pth",
+        "/app/static/models/adapter.pth"
+    ]
+    if output_path:
+        target_paths.insert(0, output_path)
 
-    save_adapter(model, output_path)
+    saved_any = False
+    for p in target_paths:
+        try:
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            save_adapter(model, p)
+            print(f"[SUCCESS] Saved adapter weights to: {p}")
+            saved_any = True
+        except Exception as e:
+            pass
+
     print("=" * 60)
-    print(f"[SUCCESS] Adapter weights ({mode.upper()}) saved to: {output_path}")
+    print(f"[SUCCESS] Adapter fine-tuning finished for mode: {mode.upper()}")
     print("=" * 60)
+
 
 
 if __name__ == "__main__":

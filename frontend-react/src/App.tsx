@@ -433,6 +433,7 @@ function App() {
     setIsChatActive(false);
     setSearchInput('');
     setActiveQuery('');
+    setIsDashboardOpen(false);
     resetChatSession();
   };
 
@@ -489,6 +490,7 @@ function App() {
         onResetSearch={handleResetSearch}
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenDashboard={() => setIsDashboardOpen(true)}
+        isDashboardOpen={isDashboardOpen}
         totalCount={totalCount}
         originalCount={originalCount}
         uploadedCount={uploadedCount}
@@ -511,9 +513,18 @@ function App() {
           position: 'relative'
         }}
       >
-        {!isChatActive ? (
+        {isDashboardOpen ? (
           /* =========================================================================
-             1. Landing Page State: Big central search + Recently Added Gallery
+             1. Evaluation Dashboard View (Swapped into Right Main Screen Workspace)
+             ========================================================================= */
+          <Dashboard 
+            apiBase={API_BASE}
+            onSelectAsset={handleSelectAsset}
+            onClose={() => setIsDashboardOpen(false)}
+          />
+        ) : !isChatActive ? (
+          /* =========================================================================
+             2. Landing Page State: Big central search + Recently Added Gallery
              ========================================================================= */
           <div style={{
             maxWidth: '900px',
@@ -707,7 +718,7 @@ function App() {
           </div>
         ) : (
           /* =========================================================================
-             2. Conversational State: Unified AI Chat Portal (No Split View)
+             3. Conversational State: Unified AI Chat Portal (No Split View)
              ========================================================================= */
           <div style={{
             maxWidth: '900px',
@@ -747,15 +758,6 @@ function App() {
           onUploadSuccess={handleUploadSuccess}
           apiBase={API_BASE}
         />
-
-        {/* Deep Learning Evaluation Dashboard */}
-        {isDashboardOpen && (
-          <Dashboard 
-            apiBase={API_BASE}
-            onSelectAsset={handleSelectAsset}
-            onClose={() => setIsDashboardOpen(false)}
-          />
-        )}
       </main>
     </div>
   );

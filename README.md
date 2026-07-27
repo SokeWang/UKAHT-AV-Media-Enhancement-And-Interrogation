@@ -54,7 +54,7 @@ The application is fully containerized. To ensure dependency alignment and preve
 
 ### 1. Prerequisites
 *   Ensure **Docker** and **Docker Compose** are installed and running.
-*   (Optional for Agent) Start Ollama on your host machine and pull your LLM (e.g., `ollama run gemma2`) to enable RAG.
+*   (Optional for Agent) Start Ollama on your host machine and pull your LLM (e.g., `ollama run gemma4:e4b`) to enable RAG.
 
 ### 2. Start the System
 From the repository root, run:

@@ -83,7 +83,7 @@ def extract_metadata_via_llm(file_path: str) -> dict:
 
     # Try calling LLM first
     try:
-        model_name = os.getenv("UKAHT_LLM_MODEL", "gemma2")
+        model_name = os.getenv("UKAHT_LLM_MODEL", "")
         base_url = os.getenv("UKAHT_LLM_BASE_URL", "http://localhost:11434/v1")
         api_key = os.getenv("UKAHT_LLM_API_KEY", "ollama")
 
@@ -224,6 +224,8 @@ def scan_images_s3(bucket_name: str, prefix: str = "", region: Optional[str] = N
     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
         for obj in page.get("Contents", []):
             key = obj["Key"]
+            if "s3_temp" in key or "temp/" in key or "tmp/" in key:
+                continue
             ext = os.path.splitext(key)[1].lower()
             if ext in SUPPORTED_EXTENSIONS:
                 keys.append(key)

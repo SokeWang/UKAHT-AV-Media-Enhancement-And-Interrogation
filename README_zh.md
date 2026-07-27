@@ -54,7 +54,7 @@ uv pip install -r algorithm/requirements.txt
 
 ### 1. 前置准备
 *   确保您的宿主机上已经安装并启动了 **Docker** 与 **Docker Compose**。
-*   （可选，用于 AI Agent）在宿主机启动 Ollama 并拉取大模型（如 `ollama run gemma2`）。
+*   （可选，用于 AI Agent）在宿主机启动 Ollama 并拉取大模型（如 `ollama run gemma4:e4b`）。
 
 ### 2. 启动系统
 在项目根目录下，执行以下命令：

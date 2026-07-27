@@ -34,6 +34,29 @@ app.add_middleware(
 )
 
 # ---------------------------------------------------------------------------
+# Pydantic Schemas
+# ---------------------------------------------------------------------------
+class TextRequest(BaseModel):
+    text: str
+
+class BatchPathsRequest(BaseModel):
+    paths: List[str]
+
+class AdaptRequest(BaseModel):
+    embeddings: List[List[float]]
+    adapter_path: Optional[str] = None
+
+class TrainRequest(BaseModel):
+    mode: Optional[str] = "mlp"
+    epochs: Optional[int] = 25
+    lr: Optional[float] = 1e-4
+    loss_type: Optional[str] = "infonce"
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = "default"
+
+# ---------------------------------------------------------------------------
 # Startup Model Preloading (Warm up Ollama)
 # ---------------------------------------------------------------------------
 @app.on_event("startup")
@@ -200,6 +223,32 @@ def api_embed_text(req: TextRequest):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.post("/api/algo/train")
+def api_train_adapter(req: TrainRequest):
+    """Trigger fine-tuning in background for MLP, LoRA, or QLoRA mode."""
+    import threading
+    from algorithm.train_adapter import train
+
+    mode_val = (req.mode or "mlp").lower()
+    def run_train():
+        try:
+            train(
+                mode=mode_val,
+                epochs=req.epochs or 25,
+                lr=req.lr or 1e-4,
+                loss_type=req.loss_type or "infonce"
+            )
+        except Exception as e:
+            print(f"[TRAIN ERROR] {e}")
+
+    threading.Thread(target=run_train, daemon=True).start()
+    return {
+        "code": 200,
+        "message": f"Fine-tuning launched for mode: {mode_val}",
+        "data": {"status": "started", "mode": mode_val}
+    }
+
+
 @app.post("/api/algo/adapt")
 def api_adapt(req: AdaptRequest):
     """Project CLIP embeddings using the MLP Adapter."""
@@ -231,11 +280,34 @@ def api_agent_chat(req: ChatRequest):
             "data": {
                 "answer": result["answer"],
                 "retrieved_assets": result["retrieved_assets"],
+                "tool_steps": result.get("tool_steps", []),
                 "session_id": session_id,
             }
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/algo/agent/chat/stream")
+def api_agent_chat_stream(req: ChatRequest):
+    """Run one turn of ReAct LLM agent with real-time SSE streaming."""
+    from fastapi.responses import StreamingResponse
+    import json
+
+    session_id = req.session_id or "default"
+    agent = _get_agent(session_id)
+
+    def event_generator():
+        try:
+            for event in agent.run_stream(req.message):
+                event_name = event.get("event", "message")
+                event_data = event.get("data", {})
+                event_data["session_id"] = session_id
+                yield f"event: {event_name}\ndata: {json.dumps(event_data, ensure_ascii=False)}\n\n"
+        except Exception as exc:
+            yield f"event: error\ndata: {json.dumps({'message': str(exc)}, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @app.delete("/api/algo/agent/session/{session_id}")
@@ -244,3 +316,4 @@ def api_reset_session(session_id: str):
     if session_id in _agent_sessions:
         _agent_sessions[session_id].reset()
     return {"code": 200, "message": "success", "data": {"status": "reset", "session_id": session_id}}
+

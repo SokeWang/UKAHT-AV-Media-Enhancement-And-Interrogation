@@ -226,6 +226,8 @@ backend/db.sqlite
 db.sqlite
 db.sqlite-journal
 postgres_data/
+ollama_data/
+backend/static/uploads/
 
 # Node dependencies
 node_modules/

@@ -43,12 +43,19 @@ def _build_model(input_dim: int = 512, hidden_dim: int = 1024, output_dim: int =
             self.lora_r = lora_r
             self.lora_alpha = lora_alpha
             
+            # Learnable residual scale parameter initialized to 0.35 for balanced residual adaptation
+            self.gamma = nn.Parameter(torch.tensor(0.35, dtype=torch.float32))
+
             if self.mode == "mlp":
                 self.net = nn.Sequential(
                     nn.Linear(input_dim, hidden_dim),
                     nn.ReLU(),
                     nn.Linear(hidden_dim, output_dim)
                 )
+                nn.init.kaiming_uniform_(self.net[0].weight)
+                nn.init.zeros_(self.net[0].bias)
+                nn.init.normal_(self.net[2].weight, std=0.01)
+                nn.init.zeros_(self.net[2].bias)
             elif self.mode in ("lora", "qlora"):
                 # Base weight initialized as identity projection (frozen)
                 self.base_weight = nn.Parameter(torch.eye(output_dim, input_dim), requires_grad=False)
