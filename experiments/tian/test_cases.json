@@ -1,0 +1,265 @@
+[
+  {
+    "id": "Q001",
+    "type": "semantic_search",
+    "query": "Find photographs of people working inside a tent.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["people", "person"],
+        ["working"],
+        ["inside a tent", "in a tent", "inside tents"]
+      ],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": null
+      },
+      "selected_tools": ["semantic_search"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q002",
+    "type": "semantic_search",
+    "query": "Show me images of penguins standing near expedition members.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["penguins", "penguin"],
+        ["standing near", "near", "beside"],
+        ["expedition members", "people", "explorers"]
+      ],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": null
+      },
+      "selected_tools": ["semantic_search"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q003",
+    "type": "semantic_search",
+    "query": "Find pictures visually showing harsh living conditions.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["difficult living conditions", "harsh living conditions", "hard living conditions"]
+        
+      ],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": null
+      },
+      "selected_tools": ["semantic_search"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q004",
+    "type": "metadata_filter",
+    "query": "Show all photographs from the expedition category.",
+    "expected": {
+      "intent": "metadata_filter",
+      "semantic_concepts": [],
+      "filters": {
+        "category": "expedition",
+        "date": null,
+        "location": null
+      },
+      "selected_tools": ["sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q005",
+    "type": "metadata_filter",
+    "query": "Show photographs taken in 1956.",
+    "expected": {
+      "intent": "metadata_filter",
+      "semantic_concepts": [],
+      "filters": {
+        "category": null,
+        "date": "1956",
+        "location": null
+      },
+      "selected_tools": ["sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q006",
+    "type": "metadata_filter",
+    "query": "Find photographs taken at Port Lockroy.",
+    "expected": {
+      "intent": "metadata_filter",
+      "semantic_concepts": [],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": "Port Lockroy"
+      },
+      "selected_tools": ["sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q007",
+    "type": "combined_search",
+    "query": "Find photographs of tents taken in 1956.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["tents", "tent"]
+      ],
+      "filters": {
+        "category": null,
+        "date": "1956",
+        "location": null
+      },
+      "selected_tools": ["semantic_search", "sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q008",
+    "type": "combined_search",
+    "query": "Show images of people working outside at Port Lockroy.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["people", "person"],
+        ["working outside", "working outdoors", "outdoor work"]
+      ],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": "Port Lockroy"
+      },
+      "selected_tools": ["semantic_search", "sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q009",
+    "type": "combined_search",
+    "query": "Find penguin photographs in the wildlife category.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["penguins", "penguin"]
+      ],
+      "filters": {
+        "category": "wildlife",
+        "date": null,
+        "location": null
+      },
+      "selected_tools": ["semantic_search", "sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q010",
+    "type": "combined_search",
+    "query": "Show photographs of ships near Port Lockroy.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["ships", "ship", "vessels", "vessel"]
+      ],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": "Port Lockroy"
+      },
+      "selected_tools": ["semantic_search", "sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q011",
+    "type": "combined_search",
+    "query": "Find images of expedition members in tents from 1956.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [
+        ["expedition members", "people", "explorers"],
+        ["in tents", "inside tents", "in a tent"]
+      ],
+      "filters": {
+        "category": null,
+        "date": "1956",
+        "location": null
+      },
+      "selected_tools": ["semantic_search", "sql_filter"],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q012",
+    "type": "clarification",
+    "query": "Show me some interesting photographs.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": null
+      },
+      "selected_tools": [],
+      "needs_clarification": true
+    }
+  },
+  {
+    "id": "Q013",
+    "type": "clarification",
+    "query": "Find the old photograph I was looking at earlier.",
+    "expected": {
+      "intent": "image_search",
+      "semantic_concepts": [],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": null
+      },
+      "selected_tools": [],
+      "needs_clarification": true
+    }
+  },
+  {
+    "id": "Q014",
+    "type": "unsupported",
+    "query": "What will the weather be in Antarctica tomorrow?",
+    "expected": {
+      "intent": "unsupported",
+      "semantic_concepts": [],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": null
+      },
+      "selected_tools": [],
+      "needs_clarification": false
+    }
+  },
+  {
+    "id": "Q015",
+    "type": "unsupported",
+    "query": "Book me a flight from London to Antarctica.",
+    "expected": {
+      "intent": "unsupported",
+      "semantic_concepts": [],
+      "filters": {
+        "category": null,
+        "date": null,
+        "location": null
+      },
+      "selected_tools": [],
+      "needs_clarification": false
+    }
+  }
+]
