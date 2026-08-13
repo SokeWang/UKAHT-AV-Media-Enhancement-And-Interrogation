@@ -1,0 +1,1906 @@
+{
+  "benchmark_configuration": {
+    "models": [
+      "gemma4:e4b",
+      "qwen3:8b"
+    ],
+    "number_of_test_cases": 15,
+    "runs_per_case": 2,
+    "total_requests": 60,
+    "warm_up_included_in_results": false
+  },
+  "model_summaries": [
+    {
+      "model": "gemma4:e4b",
+      "number_of_test_cases": 15,
+      "runs_per_case": 2,
+      "total_runs": 30,
+      "average_response_time_seconds": 15.919,
+      "average_generation_speed_tokens_per_second": 10.34,
+      "complete_task_success_rate_percent": 53.33,
+      "successful_runs": 16,
+      "failed_runs": 14
+    },
+    {
+      "model": "qwen3:8b",
+      "number_of_test_cases": 15,
+      "runs_per_case": 2,
+      "total_runs": 30,
+      "average_response_time_seconds": 12.011,
+      "average_generation_speed_tokens_per_second": 6.86,
+      "complete_task_success_rate_percent": 76.67,
+      "successful_runs": 23,
+      "failed_runs": 7
+    }
+  ],
+  "full_results": {
+    "gemma4:e4b": {
+      "summary": {
+        "model": "gemma4:e4b",
+        "number_of_test_cases": 15,
+        "runs_per_case": 2,
+        "total_runs": 30,
+        "average_response_time_seconds": 15.919,
+        "average_generation_speed_tokens_per_second": 10.34,
+        "complete_task_success_rate_percent": 53.33,
+        "successful_runs": 16,
+        "failed_runs": 14
+      },
+      "individual_results": [
+        {
+          "case_id": "Q001",
+          "case_type": "semantic_search",
+          "query": "Find photographs of people working inside a tent.",
+          "run": 1,
+          "response_time_seconds": 20.483,
+          "generation_speed_tokens_per_second": 10.88,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working inside a tent",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q001",
+          "case_type": "semantic_search",
+          "query": "Find photographs of people working inside a tent.",
+          "run": 2,
+          "response_time_seconds": 11.636,
+          "generation_speed_tokens_per_second": 9.79,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working inside a tent",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q002",
+          "case_type": "semantic_search",
+          "query": "Show me images of penguins standing near expedition members.",
+          "run": 1,
+          "response_time_seconds": 20.612,
+          "generation_speed_tokens_per_second": 10.84,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "penguins standing near expedition members",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q002",
+          "case_type": "semantic_search",
+          "query": "Show me images of penguins standing near expedition members.",
+          "run": 2,
+          "response_time_seconds": 11.812,
+          "generation_speed_tokens_per_second": 9.73,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "penguins standing near expedition members",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q003",
+          "case_type": "semantic_search",
+          "query": "Find pictures visually showing harsh living conditions.",
+          "run": 1,
+          "response_time_seconds": 22.189,
+          "generation_speed_tokens_per_second": 10.49,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "harsh living conditions",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q003",
+          "case_type": "semantic_search",
+          "query": "Find pictures visually showing harsh living conditions.",
+          "run": 2,
+          "response_time_seconds": 11.488,
+          "generation_speed_tokens_per_second": 9.85,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "harsh living conditions",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q004",
+          "case_type": "metadata_filter",
+          "query": "Show all photographs from the expedition category.",
+          "run": 1,
+          "response_time_seconds": 19.892,
+          "generation_speed_tokens_per_second": 10.89,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": "expedition",
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q004",
+          "case_type": "metadata_filter",
+          "query": "Show all photographs from the expedition category.",
+          "run": 2,
+          "response_time_seconds": 11.364,
+          "generation_speed_tokens_per_second": 9.78,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": "expedition",
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q005",
+          "case_type": "metadata_filter",
+          "query": "Show photographs taken in 1956.",
+          "run": 1,
+          "response_time_seconds": 20.525,
+          "generation_speed_tokens_per_second": 10.85,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q005",
+          "case_type": "metadata_filter",
+          "query": "Show photographs taken in 1956.",
+          "run": 2,
+          "response_time_seconds": 11.52,
+          "generation_speed_tokens_per_second": 9.8,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q006",
+          "case_type": "metadata_filter",
+          "query": "Find photographs taken at Port Lockroy.",
+          "run": 1,
+          "response_time_seconds": 18.528,
+          "generation_speed_tokens_per_second": 10.88,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q006",
+          "case_type": "metadata_filter",
+          "query": "Find photographs taken at Port Lockroy.",
+          "run": 2,
+          "response_time_seconds": 11.525,
+          "generation_speed_tokens_per_second": 9.77,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q007",
+          "case_type": "combined_search",
+          "query": "Find photographs of tents taken in 1956.",
+          "run": 1,
+          "response_time_seconds": 21.151,
+          "generation_speed_tokens_per_second": 10.9,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "tents",
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q007",
+          "case_type": "combined_search",
+          "query": "Find photographs of tents taken in 1956.",
+          "run": 2,
+          "response_time_seconds": 11.932,
+          "generation_speed_tokens_per_second": 9.8,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "photographs of tents",
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q008",
+          "case_type": "combined_search",
+          "query": "Show images of people working outside at Port Lockroy.",
+          "run": 1,
+          "response_time_seconds": 19.309,
+          "generation_speed_tokens_per_second": 10.9,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working outside",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q008",
+          "case_type": "combined_search",
+          "query": "Show images of people working outside at Port Lockroy.",
+          "run": 2,
+          "response_time_seconds": 12.518,
+          "generation_speed_tokens_per_second": 9.86,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working outside",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q009",
+          "case_type": "combined_search",
+          "query": "Find penguin photographs in the wildlife category.",
+          "run": 1,
+          "response_time_seconds": 21.086,
+          "generation_speed_tokens_per_second": 10.89,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "penguin photographs",
+            "filters": {
+              "category": "wildlife",
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q009",
+          "case_type": "combined_search",
+          "query": "Find penguin photographs in the wildlife category.",
+          "run": 2,
+          "response_time_seconds": 12.227,
+          "generation_speed_tokens_per_second": 9.78,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "penguin photographs",
+            "filters": {
+              "category": "wildlife",
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q010",
+          "case_type": "combined_search",
+          "query": "Show photographs of ships near Port Lockroy.",
+          "run": 1,
+          "response_time_seconds": 20.193,
+          "generation_speed_tokens_per_second": 10.87,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "photographs of ships near Port Lockroy",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q010",
+          "case_type": "combined_search",
+          "query": "Show photographs of ships near Port Lockroy.",
+          "run": 2,
+          "response_time_seconds": 12.836,
+          "generation_speed_tokens_per_second": 10.01,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "photographs of ships near Port Lockroy",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q011",
+          "case_type": "combined_search",
+          "query": "Find images of expedition members in tents from 1956.",
+          "run": 1,
+          "response_time_seconds": 22.178,
+          "generation_speed_tokens_per_second": 10.8,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "expedition members in tents",
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q011",
+          "case_type": "combined_search",
+          "query": "Find images of expedition members in tents from 1956.",
+          "run": 2,
+          "response_time_seconds": 11.541,
+          "generation_speed_tokens_per_second": 10.96,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "expedition members in tents",
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q012",
+          "case_type": "clarification",
+          "query": "Show me some interesting photographs.",
+          "run": 1,
+          "response_time_seconds": 20.361,
+          "generation_speed_tokens_per_second": 10.86,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": false,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "interesting photographs",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q012",
+          "case_type": "clarification",
+          "query": "Show me some interesting photographs.",
+          "run": 2,
+          "response_time_seconds": 11.237,
+          "generation_speed_tokens_per_second": 9.9,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": false,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "interesting photographs",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q013",
+          "case_type": "clarification",
+          "query": "Find the old photograph I was looking at earlier.",
+          "run": 1,
+          "response_time_seconds": 19.798,
+          "generation_speed_tokens_per_second": 10.88,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q013",
+          "case_type": "clarification",
+          "query": "Find the old photograph I was looking at earlier.",
+          "run": 2,
+          "response_time_seconds": 10.202,
+          "generation_speed_tokens_per_second": 9.64,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q014",
+          "case_type": "unsupported",
+          "query": "What will the weather be in Antarctica tomorrow?",
+          "run": 1,
+          "response_time_seconds": 19.688,
+          "generation_speed_tokens_per_second": 10.58,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": false
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q014",
+          "case_type": "unsupported",
+          "query": "What will the weather be in Antarctica tomorrow?",
+          "run": 2,
+          "response_time_seconds": 10.128,
+          "generation_speed_tokens_per_second": 9.59,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": false
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q015",
+          "case_type": "unsupported",
+          "query": "Book me a flight from London to Antarctica.",
+          "run": 1,
+          "response_time_seconds": 19.462,
+          "generation_speed_tokens_per_second": 10.86,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": false
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q015",
+          "case_type": "unsupported",
+          "query": "Book me a flight from London to Antarctica.",
+          "run": 2,
+          "response_time_seconds": 10.151,
+          "generation_speed_tokens_per_second": 9.58,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": false
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        }
+      ]
+    },
+    "qwen3:8b": {
+      "summary": {
+        "model": "qwen3:8b",
+        "number_of_test_cases": 15,
+        "runs_per_case": 2,
+        "total_runs": 30,
+        "average_response_time_seconds": 12.011,
+        "average_generation_speed_tokens_per_second": 6.86,
+        "complete_task_success_rate_percent": 76.67,
+        "successful_runs": 23,
+        "failed_runs": 7
+      },
+      "individual_results": [
+        {
+          "case_id": "Q001",
+          "case_type": "semantic_search",
+          "query": "Find photographs of people working inside a tent.",
+          "run": 1,
+          "response_time_seconds": 11.714,
+          "generation_speed_tokens_per_second": 7.47,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working inside a tent",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q001",
+          "case_type": "semantic_search",
+          "query": "Find photographs of people working inside a tent.",
+          "run": 2,
+          "response_time_seconds": 11.275,
+          "generation_speed_tokens_per_second": 7.44,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working inside a tent",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q002",
+          "case_type": "semantic_search",
+          "query": "Show me images of penguins standing near expedition members.",
+          "run": 1,
+          "response_time_seconds": 12.177,
+          "generation_speed_tokens_per_second": 7.44,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "penguins standing near expedition members",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q002",
+          "case_type": "semantic_search",
+          "query": "Show me images of penguins standing near expedition members.",
+          "run": 2,
+          "response_time_seconds": 12.851,
+          "generation_speed_tokens_per_second": 6.58,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "penguins standing near expedition members",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q003",
+          "case_type": "semantic_search",
+          "query": "Find pictures visually showing harsh living conditions.",
+          "run": 1,
+          "response_time_seconds": 11.58,
+          "generation_speed_tokens_per_second": 7.54,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "harsh living conditions",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q003",
+          "case_type": "semantic_search",
+          "query": "Find pictures visually showing harsh living conditions.",
+          "run": 2,
+          "response_time_seconds": 12.471,
+          "generation_speed_tokens_per_second": 6.63,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "harsh living conditions",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q004",
+          "case_type": "metadata_filter",
+          "query": "Show all photographs from the expedition category.",
+          "run": 1,
+          "response_time_seconds": 10.952,
+          "generation_speed_tokens_per_second": 6.64,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "metadata_filter",
+            "semantic_query": null,
+            "filters": {
+              "category": "expedition"
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q004",
+          "case_type": "metadata_filter",
+          "query": "Show all photographs from the expedition category.",
+          "run": 2,
+          "response_time_seconds": 9.418,
+          "generation_speed_tokens_per_second": 7.47,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "metadata_filter",
+            "semantic_query": null,
+            "filters": {
+              "category": "expedition"
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q005",
+          "case_type": "metadata_filter",
+          "query": "Show photographs taken in 1956.",
+          "run": 1,
+          "response_time_seconds": 12.712,
+          "generation_speed_tokens_per_second": 6.83,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "metadata_filter",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q005",
+          "case_type": "metadata_filter",
+          "query": "Show photographs taken in 1956.",
+          "run": 2,
+          "response_time_seconds": 12.554,
+          "generation_speed_tokens_per_second": 6.6,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "metadata_filter",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q006",
+          "case_type": "metadata_filter",
+          "query": "Find photographs taken at Port Lockroy.",
+          "run": 1,
+          "response_time_seconds": 12.59,
+          "generation_speed_tokens_per_second": 6.78,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q006",
+          "case_type": "metadata_filter",
+          "query": "Find photographs taken at Port Lockroy.",
+          "run": 2,
+          "response_time_seconds": 12.402,
+          "generation_speed_tokens_per_second": 6.56,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "metadata_filter",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q007",
+          "case_type": "combined_search",
+          "query": "Find photographs of tents taken in 1956.",
+          "run": 1,
+          "response_time_seconds": 13.516,
+          "generation_speed_tokens_per_second": 6.91,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "tents",
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q007",
+          "case_type": "combined_search",
+          "query": "Find photographs of tents taken in 1956.",
+          "run": 2,
+          "response_time_seconds": 13.3,
+          "generation_speed_tokens_per_second": 6.67,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "tents",
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q008",
+          "case_type": "combined_search",
+          "query": "Show images of people working outside at Port Lockroy.",
+          "run": 1,
+          "response_time_seconds": 11.909,
+          "generation_speed_tokens_per_second": 6.77,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working outside",
+            "filters": {
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q008",
+          "case_type": "combined_search",
+          "query": "Show images of people working outside at Port Lockroy.",
+          "run": 2,
+          "response_time_seconds": 11.64,
+          "generation_speed_tokens_per_second": 6.57,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "people working outside",
+            "filters": {
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q009",
+          "case_type": "combined_search",
+          "query": "Find penguin photographs in the wildlife category.",
+          "run": 1,
+          "response_time_seconds": 12.438,
+          "generation_speed_tokens_per_second": 6.85,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": false,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "metadata_filter",
+            "semantic_query": null,
+            "filters": {
+              "category": "wildlife",
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q009",
+          "case_type": "combined_search",
+          "query": "Find penguin photographs in the wildlife category.",
+          "run": 2,
+          "response_time_seconds": 12.222,
+          "generation_speed_tokens_per_second": 6.57,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": false,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "metadata_filter",
+            "semantic_query": null,
+            "filters": {
+              "category": "wildlife",
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q010",
+          "case_type": "combined_search",
+          "query": "Show photographs of ships near Port Lockroy.",
+          "run": 1,
+          "response_time_seconds": 12.163,
+          "generation_speed_tokens_per_second": 6.77,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "ships near Port Lockroy",
+            "filters": {
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q010",
+          "case_type": "combined_search",
+          "query": "Show photographs of ships near Port Lockroy.",
+          "run": 2,
+          "response_time_seconds": 11.974,
+          "generation_speed_tokens_per_second": 6.58,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "ships near Port Lockroy",
+            "filters": {
+              "location": "Port Lockroy"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q011",
+          "case_type": "combined_search",
+          "query": "Find images of expedition members in tents from 1956.",
+          "run": 1,
+          "response_time_seconds": 12.309,
+          "generation_speed_tokens_per_second": 6.93,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "expedition members in tents",
+            "filters": {
+              "date": "1956"
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q011",
+          "case_type": "combined_search",
+          "query": "Find images of expedition members in tents from 1956.",
+          "run": 2,
+          "response_time_seconds": 13.702,
+          "generation_speed_tokens_per_second": 6.71,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "expedition members in tents",
+            "filters": {
+              "category": null,
+              "date": "1956",
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search",
+              "sql_filter"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q012",
+          "case_type": "clarification",
+          "query": "Show me some interesting photographs.",
+          "run": 1,
+          "response_time_seconds": 12.545,
+          "generation_speed_tokens_per_second": 6.75,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": false,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": false
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "interesting photographs",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q012",
+          "case_type": "clarification",
+          "query": "Show me some interesting photographs.",
+          "run": 2,
+          "response_time_seconds": 12.264,
+          "generation_speed_tokens_per_second": 6.56,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": true,
+            "semantic_correct": false,
+            "filters_correct": true,
+            "tools_correct": false,
+            "clarification_correct": false
+          },
+          "model_output": {
+            "intent": "image_search",
+            "semantic_query": "interesting photographs",
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [
+              "semantic_search"
+            ],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q013",
+          "case_type": "clarification",
+          "query": "Find the old photograph I was looking at earlier.",
+          "run": 1,
+          "response_time_seconds": 11.625,
+          "generation_speed_tokens_per_second": 6.82,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q013",
+          "case_type": "clarification",
+          "query": "Find the old photograph I was looking at earlier.",
+          "run": 2,
+          "response_time_seconds": 11.448,
+          "generation_speed_tokens_per_second": 6.48,
+          "json_valid": true,
+          "task_success": false,
+          "evaluation": {
+            "complete_success": false,
+            "intent_correct": false,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": true
+          }
+        },
+        {
+          "case_id": "Q014",
+          "case_type": "unsupported",
+          "query": "What will the weather be in Antarctica tomorrow?",
+          "run": 1,
+          "response_time_seconds": 11.639,
+          "generation_speed_tokens_per_second": 6.78,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q014",
+          "case_type": "unsupported",
+          "query": "What will the weather be in Antarctica tomorrow?",
+          "run": 2,
+          "response_time_seconds": 11.839,
+          "generation_speed_tokens_per_second": 6.23,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q015",
+          "case_type": "unsupported",
+          "query": "Book me a flight from London to Antarctica.",
+          "run": 1,
+          "response_time_seconds": 11.054,
+          "generation_speed_tokens_per_second": 7.18,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": false
+          }
+        },
+        {
+          "case_id": "Q015",
+          "case_type": "unsupported",
+          "query": "Book me a flight from London to Antarctica.",
+          "run": 2,
+          "response_time_seconds": 10.058,
+          "generation_speed_tokens_per_second": 7.57,
+          "json_valid": true,
+          "task_success": true,
+          "evaluation": {
+            "complete_success": true,
+            "intent_correct": true,
+            "semantic_correct": true,
+            "filters_correct": true,
+            "tools_correct": true,
+            "clarification_correct": true
+          },
+          "model_output": {
+            "intent": "unsupported",
+            "semantic_query": null,
+            "filters": {
+              "category": null,
+              "date": null,
+              "location": null
+            },
+            "selected_tools": [],
+            "needs_clarification": false
+          }
+        }
+      ]
+    }
+  }
+}
