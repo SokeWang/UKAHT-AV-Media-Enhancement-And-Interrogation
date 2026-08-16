@@ -348,9 +348,10 @@ def train(mode="mlp", epochs=20, batch_size=16, lr=1e-4, lora_r=16, lora_alpha=3
             loss = loss_main + 0.01 * loss_reg
 
             # Add Polar Covariance Spectrum Equalization (PCSE) Innovation Loss
+            # Coefficient 0.005 and anchor-only scope aligned with experiments/peidong/train_adapter.py
             if use_pcse_loss:
-                loss_pcse = (pcse_loss(out_a) + pcse_loss(out_p)) / 2.0
-                loss = loss + 0.05 * loss_pcse
+                loss_pcse = 0.005 * pcse_loss(out_a)
+                loss = loss + loss_pcse
                 
             loss.backward()
             optimizer.step()
