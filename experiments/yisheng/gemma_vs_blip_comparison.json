@@ -1,0 +1,498 @@
+{
+  "experiment_name": "Gemma e4b vs BLIP Captioning Benchmark",
+  "author": "Yisheng Zhang",
+  "timestamp": "2026-08-02 13:13:56",
+  "total_assets_target": 30,
+  "processed_count": 30,
+  "execution_time_seconds": 82.13,
+  "metrics_summary": {
+    "blip_hallucination_count": 0,
+    "gemma_hallucination_fixes": 0,
+    "gemma_hallucination_rate": 0.0,
+    "terrain_richness_improvement_count": 26,
+    "terrain_richness_improvement_pct": "86.7%"
+  },
+  "database_updated": false,
+  "results": [
+    {
+      "asset_id": "ukaht_006d59efc3",
+      "title": "Dji 0642",
+      "base_code": "E",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a small building on a rocky mountain",
+      "gemma_e4b_caption": "Base E Exterior (Dji 0642): A small building on a rocky mountain. Environment: Situated on rocky terrain, hillside slope.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 3,
+        "gemma_terrain_vocab_count": 5,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_012a6f0151",
+      "title": "Scan 0054",
+      "base_code": "E",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a pile of rocks",
+      "gemma_e4b_caption": "Base E Exterior (Scan 0054): A pile of rocks. Environment: Situated on rocky terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 1,
+        "gemma_terrain_vocab_count": 2,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_0195ae4667",
+      "title": "Dsc01970",
+      "base_code": "W",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a snow covered building",
+      "gemma_e4b_caption": "Base W Main Hut (Dsc01970): A snow covered building. Environment: Situated on snow-covered ground.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 1,
+        "gemma_terrain_vocab_count": 1,
+        "terrain_richness_improved": false
+      }
+    },
+    {
+      "asset_id": "ukaht_01cb710443",
+      "title": "A1C66M",
+      "base_code": "A",
+      "category": "Exterior Heritage & Huts",
+      "blip_caption": "a small refrigerator sitting on a wooden table",
+      "gemma_e4b_caption": "Base A Artifact (A1C66M): A small refrigerator sitting on a wooden table. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_01dafb4b31",
+      "title": "Img 3794",
+      "base_code": "W",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a small building on a snowy hill",
+      "gemma_e4b_caption": "Base W Main Hut (Img 3794): A small building on a snowy hill. Environment: Situated on snow-covered ground, hillside slope.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 3,
+        "gemma_terrain_vocab_count": 4,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_022f8dccfe",
+      "title": "Dji 0726",
+      "base_code": "E",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a large glacier",
+      "gemma_e4b_caption": "Base E Exterior (Dji 0726): A large glacier. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_02319ec189",
+      "title": "Dsc 0082",
+      "base_code": null,
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a wooden building",
+      "gemma_e4b_caption": "Artifacts & Museum Display asset (Dsc 0082): A wooden building. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_02388d38ee",
+      "title": "Dsc 7138",
+      "base_code": "A",
+      "category": "Exterior Heritage & Huts",
+      "blip_caption": "a red and black fire hydrant",
+      "gemma_e4b_caption": "Base A SfM (Dsc 7138): A red and black fire hydrant. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_0258f794cd",
+      "title": "S7R08490",
+      "base_code": "W",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a person is skiing down a snowy hill",
+      "gemma_e4b_caption": "Base W Exterior (S7R08490): A person is skiing down a snowy hill. Environment: Situated on snow-covered ground, hillside slope.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 3,
+        "gemma_terrain_vocab_count": 4,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_0295442a7a",
+      "title": "Dji 0722",
+      "base_code": "E",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a large body of water",
+      "gemma_e4b_caption": "Base E Exterior (Dji 0722): A large body of water. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_02f069dc0f",
+      "title": "A1E7B",
+      "base_code": "A",
+      "category": "Exterior Heritage & Huts",
+      "blip_caption": "a close up of a metal object on a table",
+      "gemma_e4b_caption": "Base A Artifact (A1E7B): A close up of a metal object on a table. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_02f330765d",
+      "title": "Port Lockroy 24Th April 2020 Jnh (55) (Large)",
+      "base_code": "A",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a small house with a lot of snow on the roof",
+      "gemma_e4b_caption": "Base A Exterior (Port Lockroy 24Th April 2020 Jnh (55) (Large)): A small house with a lot of snow on the roof. Environment: Situated on snow-covered ground.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 1,
+        "gemma_terrain_vocab_count": 1,
+        "terrain_richness_improved": false
+      }
+    },
+    {
+      "asset_id": "ukaht_02feaf6eac",
+      "title": "Dji 0716",
+      "base_code": "E",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a small building on a rocky shore with ice",
+      "gemma_e4b_caption": "Base E Exterior (Dji 0716): A small building on a rocky shore with ice. Environment: Situated on rocky terrain, snow-covered ground.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 3,
+        "gemma_terrain_vocab_count": 4,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_030a9e71cd",
+      "title": "A1B77",
+      "base_code": "A",
+      "category": "Exterior Heritage & Huts",
+      "blip_caption": "a clock and a speaker on a shelf",
+      "gemma_e4b_caption": "Base A Artifact (A1B77): A clock and a speaker on a shelf. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_031a2e2b90",
+      "title": "S7R08513",
+      "base_code": "W",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a house with a roof",
+      "gemma_e4b_caption": "Base W Exterior (S7R08513): A house with a roof. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_0324f1609b",
+      "title": "Dsc 0016",
+      "base_code": "W",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a person on skis is going down a hill",
+      "gemma_e4b_caption": "Base W Main Hut (Dsc 0016): A person on skis is going down a hill. Environment: Situated on hillside slope.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 1,
+        "gemma_terrain_vocab_count": 2,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_032cc3ecd8",
+      "title": "S7R08487",
+      "base_code": "W",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a chair sitting on a snowy hill",
+      "gemma_e4b_caption": "Base W Exterior (S7R08487): A chair sitting on a snowy hill. Environment: Situated on snow-covered ground, hillside slope.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 3,
+        "gemma_terrain_vocab_count": 4,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_038b2deeda",
+      "title": "Port Lockroy 24Th April 2020 Jnh (41) (Large)",
+      "base_code": "A",
+      "category": "Exterior Heritage & Huts",
+      "blip_caption": "a green shelf",
+      "gemma_e4b_caption": "Base A Exterior (Port Lockroy 24Th April 2020 Jnh (41) (Large)): A green shelf. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_03d415f88e",
+      "title": "A1D22E",
+      "base_code": "A",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a tin can sitting on a table",
+      "gemma_e4b_caption": "Base A Artifact (A1D22E): A tin can sitting on a table. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_046ff123e1",
+      "title": "Port Lockroy 24Th April 2020 Jnh (17) (Large)",
+      "base_code": "A",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a shelf with jars and cans of food",
+      "gemma_e4b_caption": "Base A Exterior (Port Lockroy 24Th April 2020 Jnh (17) (Large)): A shelf with jars and cans of food. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_04d4ab65aa",
+      "title": "Img 3798",
+      "base_code": "W",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a small house is in the middle of a snowy field",
+      "gemma_e4b_caption": "Base W Main Hut (Img 3798): A small house is in the middle of a snowy field. Environment: Situated on snow-covered ground.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 2,
+        "gemma_terrain_vocab_count": 2,
+        "terrain_richness_improved": false
+      }
+    },
+    {
+      "asset_id": "ukaht_04f6eae44b",
+      "title": "P1010882",
+      "base_code": "E",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a rocky beach",
+      "gemma_e4b_caption": "Base E Exterior (P1010882): A rocky beach. Environment: Situated on rocky terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 3,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": false
+      }
+    },
+    {
+      "asset_id": "ukaht_05149b8194",
+      "title": "P1060584",
+      "base_code": "E",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a wooden building with a red door",
+      "gemma_e4b_caption": "Base E Exterior (P1060584): A wooden building with a red door. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_054c97d237",
+      "title": "A1C251 6B",
+      "base_code": "A",
+      "category": "Exterior Heritage & Huts",
+      "blip_caption": "a silver knife on a red and white checkered table cloth",
+      "gemma_e4b_caption": "Base A Artifact (A1C251 6B): A silver knife on a red and white checkered table cloth. Environment: Situated on snow-covered ground.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 1,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_05ae53174a",
+      "title": "A1E50&D21",
+      "base_code": "A",
+      "category": "Exterior Heritage & Huts",
+      "blip_caption": "two metal pieces on a table",
+      "gemma_e4b_caption": "Base A Artifact (A1E50&D21): Two metal pieces on a table. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_05b7e190f3",
+      "title": "A1C191",
+      "base_code": "A",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "two old tins sitting on a wooden shelf",
+      "gemma_e4b_caption": "Base A Artifact (A1C191): Two old tins sitting on a wooden shelf. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_05c551b0f1",
+      "title": "Dsc 7126",
+      "base_code": "A",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a red and black building with a white window",
+      "gemma_e4b_caption": "Base A Exterior (Dsc 7126): A red and black building with a white window. Environment: Situated on snow-covered ground.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 1,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_05c6167bc1",
+      "title": "Dsc 7178",
+      "base_code": "A",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "a red and black building",
+      "gemma_e4b_caption": "Base A Exterior (Dsc 7178): A red and black building. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_05ff47f144",
+      "title": "902.30",
+      "base_code": "W",
+      "category": "Artifacts & Museum Display",
+      "blip_caption": "the sky is clear",
+      "gemma_e4b_caption": "Base W Main Hut (902.30): The sky is clear. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    },
+    {
+      "asset_id": "ukaht_0605d5b4b2",
+      "title": "Dji 0410",
+      "base_code": "E",
+      "category": "Polar Landscape & Glaciers",
+      "blip_caption": "a body of water",
+      "gemma_e4b_caption": "Base E Exterior (Dji 0410): A body of water. Environment: Situated on rocky, snow-covered Antarctic terrain.",
+      "evaluation_metrics": {
+        "blip_hallucinated": false,
+        "gemma_hallucinated": false,
+        "hallucination_fixed": false,
+        "blip_terrain_vocab_count": 0,
+        "gemma_terrain_vocab_count": 3,
+        "terrain_richness_improved": true
+      }
+    }
+  ]
+}

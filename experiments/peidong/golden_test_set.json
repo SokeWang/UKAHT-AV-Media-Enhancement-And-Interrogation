@@ -1,0 +1,783 @@
+[
+  {
+    "asset_id": "ukaht_79d2a72a28",
+    "caption": "a large body of water",
+    "query": "a large body of water",
+    "relevant_ids": [
+      "ukaht_79d2a72a28",
+      "ukaht_c4225f85a9",
+      "ukaht_486d361c60",
+      "ukaht_18fc1c52cf",
+      "ukaht_367ec90e9b",
+      "ukaht_89e09b8026",
+      "ukaht_6542785310",
+      "ukaht_a29289c061",
+      "ukaht_a222b6fb49",
+      "ukaht_cee8170117",
+      "ukaht_fee8303d95",
+      "ukaht_aca6f30806",
+      "ukaht_5257c40dcb",
+      "ukaht_faa187d85a",
+      "ukaht_d9f0d3b36b",
+      "ukaht_b0b98cded8",
+      "ukaht_84710fa981",
+      "ukaht_854e264799",
+      "ukaht_25ac2c8599",
+      "ukaht_2c60a33cbc",
+      "ukaht_ee022b41f4",
+      "ukaht_e733225072",
+      "ukaht_79901dfe33",
+      "ukaht_b5b2d656ab",
+      "ukaht_f4f43fe2ac",
+      "ukaht_23068ff628",
+      "ukaht_370f014a65",
+      "ukaht_1e1a08e927",
+      "ukaht_fe02909a08",
+      "ukaht_51776d1db6",
+      "ukaht_c1a720acaf",
+      "ukaht_1a4488c444",
+      "ukaht_0295442a7a",
+      "ukaht_2afbfb7e4f",
+      "ukaht_f3aa066195",
+      "ukaht_d486fe5086",
+      "ukaht_4d60e9ee3a",
+      "ukaht_f822cfb7c7",
+      "ukaht_9d3a65e6bc",
+      "ukaht_dd959ef711",
+      "ukaht_b373732fa3",
+      "ukaht_bc9318183e",
+      "ukaht_68a2326c5b",
+      "ukaht_96512f2f80",
+      "ukaht_31391c0c71",
+      "ukaht_f6b82a783d",
+      "ukaht_bab59281d9"
+    ]
+  },
+  {
+    "asset_id": "ukaht_4b9a822106",
+    "caption": "a white building with a black roof",
+    "query": "a white building with a black roof",
+    "relevant_ids": [
+      "ukaht_4b9a822106",
+      "ukaht_f2f9622425",
+      "ukaht_754575aaaa",
+      "ukaht_611beca089",
+      "ukaht_3198e3caee",
+      "ukaht_968bdaca35",
+      "ukaht_3a7c9cd6d0",
+      "ukaht_35be72e045",
+      "ukaht_d371028e83",
+      "ukaht_d50b1ee6b4",
+      "ukaht_12c3cbd6f3",
+      "ukaht_6733217b46",
+      "ukaht_136eb5545a",
+      "ukaht_595c4bb89c",
+      "ukaht_0d7e2c4b61",
+      "ukaht_7081f352f5",
+      "ukaht_11c2fa93b6",
+      "ukaht_2f354b3dde",
+      "ukaht_c708800cd7",
+      "ukaht_d41722df3e",
+      "ukaht_941ccfcfdf",
+      "ukaht_900b6387dc",
+      "ukaht_568f5d0f7f",
+      "ukaht_7a5ff7e1ce",
+      "ukaht_8dcabf163c",
+      "ukaht_2a229a060c",
+      "ukaht_c3d446a5a7",
+      "ukaht_adc485177b",
+      "ukaht_78d8082b13",
+      "ukaht_db469ad79d",
+      "ukaht_631b3d15d5",
+      "ukaht_c9fdddeaec",
+      "ukaht_3158924c56",
+      "ukaht_a70e2baf4f",
+      "ukaht_63e5bbe389",
+      "ukaht_0888f0e779"
+    ]
+  },
+  {
+    "asset_id": "ukaht_e247119a2e",
+    "caption": "a pile of rocks",
+    "query": "a pile of rocks",
+    "relevant_ids": [
+      "ukaht_e247119a2e",
+      "ukaht_3d33c005d4",
+      "ukaht_6e6fc3a7be",
+      "ukaht_646c55ec23",
+      "ukaht_863d03f16c",
+      "ukaht_da9380bde8",
+      "ukaht_a30756f4e7",
+      "ukaht_8b8a4b81dc",
+      "ukaht_237d806698",
+      "ukaht_0db2f3cb4d",
+      "ukaht_578acda737",
+      "ukaht_3b55807064",
+      "ukaht_2170cf41e5",
+      "ukaht_eccb458639",
+      "ukaht_e5b3ff31c8",
+      "ukaht_af41d26b51",
+      "ukaht_d235b4c701",
+      "ukaht_012a6f0151",
+      "ukaht_4392da26ae",
+      "ukaht_490d14b1bf",
+      "ukaht_073a28ac50",
+      "ukaht_fce5ad9bc3",
+      "ukaht_72a6d01c19",
+      "ukaht_6e8a0b67ad",
+      "ukaht_69724a006a",
+      "ukaht_7952b5ac3e"
+    ]
+  },
+  {
+    "asset_id": "ukaht_1170cbedb4",
+    "caption": "a red and black building",
+    "query": "a red and black building",
+    "relevant_ids": [
+      "ukaht_1170cbedb4",
+      "ukaht_c7cd4036b5",
+      "ukaht_7454d81701",
+      "ukaht_e3c58e0978",
+      "ukaht_41f7d0d2b2",
+      "ukaht_aa59b4480c",
+      "ukaht_5ec866735b",
+      "ukaht_7e908c1e25",
+      "ukaht_fbf789ede4",
+      "ukaht_b2d5ca5ebb",
+      "ukaht_218169384a",
+      "ukaht_154fe15bef",
+      "ukaht_5a3f5064a3",
+      "ukaht_05c6167bc1",
+      "ukaht_d74c20713e",
+      "ukaht_926b3fe68b",
+      "ukaht_e3a20859d2",
+      "ukaht_dc37caf009",
+      "ukaht_99ab82d9ac",
+      "ukaht_49f06b3968",
+      "ukaht_f7bb513eaf",
+      "ukaht_3ac914fedb"
+    ]
+  },
+  {
+    "asset_id": "ukaht_23de45fa04",
+    "caption": "a large iceberg floating in the water",
+    "query": "a large iceberg floating in the water",
+    "relevant_ids": [
+      "ukaht_23de45fa04",
+      "ukaht_85a34384fd",
+      "ukaht_e39ace0537",
+      "ukaht_b9b9f6512a",
+      "ukaht_e7574a012c",
+      "ukaht_bdbc4176ca",
+      "ukaht_727cd0266f",
+      "ukaht_eca85a27a3",
+      "ukaht_887c7c88a1",
+      "ukaht_c4264092fb",
+      "ukaht_c44fa21928",
+      "ukaht_a9b292a7c6",
+      "ukaht_498207f5d5",
+      "ukaht_97d7e3bd21",
+      "ukaht_205fa8479d"
+    ]
+  },
+  {
+    "asset_id": "ukaht_227b702f38",
+    "caption": "a large glacier",
+    "query": "a large glacier",
+    "relevant_ids": [
+      "ukaht_227b702f38",
+      "ukaht_9c5a4d0870",
+      "ukaht_c8a8c69fcf",
+      "ukaht_7031e1ac3f",
+      "ukaht_125e83891f",
+      "ukaht_aba36e4604",
+      "ukaht_12416c8757",
+      "ukaht_e1cb891c5f",
+      "ukaht_565369d7f4",
+      "ukaht_4c9cd77680",
+      "ukaht_338f21f2af",
+      "ukaht_3fb74d92d2",
+      "ukaht_022f8dccfe",
+      "ukaht_e87054194a"
+    ]
+  },
+  {
+    "asset_id": "ukaht_5950ec4bc9",
+    "caption": "a rocky beach",
+    "query": "a rocky beach",
+    "relevant_ids": [
+      "ukaht_5950ec4bc9",
+      "ukaht_a26f6c005a",
+      "ukaht_04f6eae44b",
+      "ukaht_1f6ec7f395",
+      "ukaht_e005688150",
+      "ukaht_9e991daf1a",
+      "ukaht_6fb11ff777",
+      "ukaht_7b344e5c0e",
+      "ukaht_67e896c080",
+      "ukaht_5b49a6075a",
+      "ukaht_efb12e4654",
+      "ukaht_458504b3fe",
+      "ukaht_6282e60685"
+    ]
+  },
+  {
+    "asset_id": "ukaht_b604ccd7c2",
+    "caption": "a black building with red trim",
+    "query": "a black building with red trim",
+    "relevant_ids": [
+      "ukaht_b604ccd7c2",
+      "ukaht_1ae4667289",
+      "ukaht_be1beaaec6",
+      "ukaht_99cb27112e",
+      "ukaht_5a78985e79",
+      "ukaht_3926041ee7",
+      "ukaht_15a1549320",
+      "ukaht_496305f095",
+      "ukaht_21d641f91f",
+      "ukaht_ebe3b2432b",
+      "ukaht_3afc1ce6d4",
+      "ukaht_45f51cad86"
+    ]
+  },
+  {
+    "asset_id": "ukaht_a58326ec32",
+    "caption": "a small building on a rocky beach",
+    "query": "a small building on a rocky beach",
+    "relevant_ids": [
+      "ukaht_a58326ec32",
+      "ukaht_69ed1bd632",
+      "ukaht_78ab2441fe",
+      "ukaht_d37b600ff1",
+      "ukaht_7e9712b49c",
+      "ukaht_2c4efb7a3c",
+      "ukaht_b3c21b1af3",
+      "ukaht_a6d1771148",
+      "ukaht_149aca36ae"
+    ]
+  },
+  {
+    "asset_id": "ukaht_30f7da1c9d",
+    "caption": "a small building on a snowy hill",
+    "query": "a small building on a snowy hill",
+    "relevant_ids": [
+      "ukaht_30f7da1c9d",
+      "ukaht_0fca37b365",
+      "ukaht_a3ba58926d",
+      "ukaht_9d0f5de7c6",
+      "ukaht_f286638807",
+      "ukaht_1f9e222d9d",
+      "ukaht_01dafb4b31",
+      "ukaht_8de32c822e",
+      "ukaht_83c48fbcd8"
+    ]
+  },
+  {
+    "asset_id": "ukaht_9317bb02a5",
+    "caption": "a boat is in the water near a rocky shore",
+    "query": "a boat is in the water near a rocky shore",
+    "relevant_ids": [
+      "ukaht_9317bb02a5",
+      "ukaht_674f48c0af",
+      "ukaht_206a94a449",
+      "ukaht_28a2e3b9d8",
+      "ukaht_b9c2f47ddc",
+      "ukaht_bb18643d87",
+      "ukaht_699ffd8d0c",
+      "ukaht_bc300c7b48",
+      "ukaht_98a0e5ac08"
+    ]
+  },
+  {
+    "asset_id": "ukaht_02319ec189",
+    "caption": "a wooden building",
+    "query": "a wooden building",
+    "relevant_ids": [
+      "ukaht_02319ec189",
+      "ukaht_8ffc97a009",
+      "ukaht_64f05b7c6c",
+      "ukaht_a2fd3281a9",
+      "ukaht_8f607156e9",
+      "ukaht_d4738d2dba",
+      "ukaht_702ad18c56",
+      "ukaht_89d13f51b7"
+    ]
+  },
+  {
+    "asset_id": "ukaht_6f72541318",
+    "caption": "a white building",
+    "query": "a white building",
+    "relevant_ids": [
+      "ukaht_6f72541318",
+      "ukaht_753efc2672",
+      "ukaht_6114289207",
+      "ukaht_9bd30cba78",
+      "ukaht_78910a8379",
+      "ukaht_38b9e7a0df",
+      "ukaht_bd204e0126",
+      "ukaht_78c1174628"
+    ]
+  },
+  {
+    "asset_id": "ukaht_a0c9378ae5",
+    "caption": "a rocky mountain",
+    "query": "a rocky mountain",
+    "relevant_ids": [
+      "ukaht_a0c9378ae5",
+      "ukaht_9054a0b7d7",
+      "ukaht_3bc98f9893",
+      "ukaht_d091dd853d",
+      "ukaht_3fc190b67e",
+      "ukaht_831432104e",
+      "ukaht_6dc8087bef"
+    ]
+  },
+  {
+    "asset_id": "ukaht_682f72009f",
+    "caption": "a pile of snow",
+    "query": "a pile of snow",
+    "relevant_ids": [
+      "ukaht_682f72009f",
+      "ukaht_de6c768564",
+      "ukaht_f8e9544e57",
+      "ukaht_92054d58f8",
+      "ukaht_dd55f05ebd",
+      "ukaht_53d9b506d1",
+      "ukaht_97c9f79baa"
+    ]
+  },
+  {
+    "asset_id": "ukaht_6a94e6bd68",
+    "caption": "a large iceberg",
+    "query": "a large iceberg",
+    "relevant_ids": [
+      "ukaht_6a94e6bd68",
+      "ukaht_bb5ade8cb3",
+      "ukaht_cca01cccb5",
+      "ukaht_9816229c9a",
+      "ukaht_26c3464feb",
+      "ukaht_b9ebe74e85",
+      "ukaht_d370238e5a"
+    ]
+  },
+  {
+    "asset_id": "ukaht_ca7a38255f",
+    "caption": "a building with a roof",
+    "query": "a building with a roof",
+    "relevant_ids": [
+      "ukaht_ca7a38255f",
+      "ukaht_c7318d82bb",
+      "ukaht_aa6ce58b69",
+      "ukaht_9b1f2f10dd",
+      "ukaht_8d4b9ef704",
+      "ukaht_eb615d3dd1",
+      "ukaht_8b5c6646aa"
+    ]
+  },
+  {
+    "asset_id": "ukaht_62dac2cbff",
+    "caption": "a white house with a black roof",
+    "query": "a white house with a black roof",
+    "relevant_ids": [
+      "ukaht_62dac2cbff",
+      "ukaht_aa06dbf747",
+      "ukaht_4d17340f20",
+      "ukaht_837ca934e9",
+      "ukaht_7c37d6c5d2",
+      "ukaht_cab6931dee",
+      "ukaht_e674fd936f"
+    ]
+  },
+  {
+    "asset_id": "ukaht_24f975eee9",
+    "caption": "a snow covered mountain",
+    "query": "a snow covered mountain",
+    "relevant_ids": [
+      "ukaht_24f975eee9",
+      "ukaht_4fa8d74305",
+      "ukaht_38504813c1",
+      "ukaht_a89ad66407",
+      "ukaht_ba90a3a43e",
+      "ukaht_1f1fa9124d",
+      "ukaht_0866124c86"
+    ]
+  },
+  {
+    "asset_id": "ukaht_dee67f2ff4",
+    "caption": "a car is parked on a rocky beach",
+    "query": "a car is parked on a rocky beach",
+    "relevant_ids": [
+      "ukaht_dee67f2ff4",
+      "ukaht_889d0fb792",
+      "ukaht_fadbec8baa",
+      "ukaht_45cfaa93b0",
+      "ukaht_9df0476df9",
+      "ukaht_22ba412b64",
+      "ukaht_21d6060647"
+    ]
+  },
+  {
+    "asset_id": "ukaht_34308e359e",
+    "caption": "a small house on a rocky mountain",
+    "query": "a small house on a rocky mountain",
+    "relevant_ids": [
+      "ukaht_34308e359e",
+      "ukaht_bbe437d721",
+      "ukaht_72ce191ad4",
+      "ukaht_b1e5c16274",
+      "ukaht_70490d38a6",
+      "ukaht_3e62c3e66d",
+      "ukaht_8aa2b49e20"
+    ]
+  },
+  {
+    "asset_id": "ukaht_bbe84ec8ed",
+    "caption": "a pile of rocks and gravel",
+    "query": "a pile of rocks and gravel",
+    "relevant_ids": [
+      "ukaht_bbe84ec8ed",
+      "ukaht_ae544794f5",
+      "ukaht_2734b7fbaf",
+      "ukaht_407cce4cdc",
+      "ukaht_08a4becba0",
+      "ukaht_aab82266c4",
+      "ukaht_5a72c6a90f"
+    ]
+  },
+  {
+    "asset_id": "ukaht_ea5a2491d7",
+    "caption": "a black building",
+    "query": "a black building",
+    "relevant_ids": [
+      "ukaht_ea5a2491d7",
+      "ukaht_08e2f963c7",
+      "ukaht_e0c526e445",
+      "ukaht_06da0742f7",
+      "ukaht_4cd0dd1636",
+      "ukaht_71101dbdf5"
+    ]
+  },
+  {
+    "asset_id": "ukaht_b8fa25baca",
+    "caption": "a close up of a metal object on a table",
+    "query": "a close up of a metal object on a table",
+    "relevant_ids": [
+      "ukaht_b8fa25baca",
+      "ukaht_0fe1921ce3",
+      "ukaht_ed9c51f67b",
+      "ukaht_5e31cf2c63",
+      "ukaht_02f069dc0f",
+      "ukaht_4960973e9b"
+    ]
+  },
+  {
+    "asset_id": "ukaht_24c0d420b9",
+    "caption": "a person is skiing down a snowy hill",
+    "query": "a person is skiing down a snowy hill",
+    "relevant_ids": [
+      "ukaht_24c0d420b9",
+      "ukaht_f904d83e15",
+      "ukaht_0258f794cd",
+      "ukaht_bb413129fd",
+      "ukaht_431e1bee0d",
+      "ukaht_60a169d46b"
+    ]
+  },
+  {
+    "asset_id": "ukaht_9b92b54af6",
+    "caption": "a building with a black roof",
+    "query": "a building with a black roof",
+    "relevant_ids": [
+      "ukaht_9b92b54af6",
+      "ukaht_16440ec48f",
+      "ukaht_aadab626ee",
+      "ukaht_e8d2f90abb",
+      "ukaht_2aa874efb5",
+      "ukaht_3f474169b8"
+    ]
+  },
+  {
+    "asset_id": "ukaht_b419ac12b8",
+    "caption": "a car is parked on a snowy hill",
+    "query": "a car is parked on a snowy hill",
+    "relevant_ids": [
+      "ukaht_b419ac12b8",
+      "ukaht_7b88047fe6",
+      "ukaht_d0e9c986a9",
+      "ukaht_ec2a87340d",
+      "ukaht_e412bb6158",
+      "ukaht_8a2c163bb8"
+    ]
+  },
+  {
+    "asset_id": "ukaht_d5c44aa827",
+    "caption": "a car is parked on a snowy road",
+    "query": "a car is parked on a snowy road",
+    "relevant_ids": [
+      "ukaht_d5c44aa827",
+      "ukaht_ba6313816a",
+      "ukaht_f6eb729f77",
+      "ukaht_97d642ce9f",
+      "ukaht_5d47621b9c",
+      "ukaht_cadd8cb702"
+    ]
+  },
+  {
+    "asset_id": "ukaht_79cf4f71e2",
+    "caption": "a boat is on the water near a snowy mountain",
+    "query": "a boat is on the water near a snowy mountain",
+    "relevant_ids": [
+      "ukaht_79cf4f71e2",
+      "ukaht_7bbe737a9e",
+      "ukaht_abffb1d888",
+      "ukaht_7cf5ff4ddb",
+      "ukaht_50de09cbfc",
+      "ukaht_209c957522"
+    ]
+  },
+  {
+    "asset_id": "ukaht_9a6cebfb8e",
+    "caption": "a building with a flag on top of it",
+    "query": "a building with a flag on top of it",
+    "relevant_ids": [
+      "ukaht_9a6cebfb8e",
+      "ukaht_6ba3aa13d9",
+      "ukaht_74636519da",
+      "ukaht_d667029b95",
+      "ukaht_d406a98062",
+      "ukaht_433ae9f49e"
+    ]
+  },
+  {
+    "asset_id": "ukaht_b4283cc888",
+    "caption": "a small building with a flag on top of it",
+    "query": "a small building with a flag on top of it",
+    "relevant_ids": [
+      "ukaht_b4283cc888",
+      "ukaht_325b004fe6",
+      "ukaht_65ac9ff44c",
+      "ukaht_c8f91af8df",
+      "ukaht_63a73fd365",
+      "ukaht_de8ddb5a15"
+    ]
+  },
+  {
+    "asset_id": "ukaht_cf3e89755c",
+    "caption": "a large rock in the snow",
+    "query": "a large rock in the snow",
+    "relevant_ids": [
+      "ukaht_cf3e89755c",
+      "ukaht_d523d68d14",
+      "ukaht_eac5927980",
+      "ukaht_b73ff9be5a",
+      "ukaht_d8f07637a2"
+    ]
+  },
+  {
+    "asset_id": "ukaht_f299715f44",
+    "caption": "a red window on a black building",
+    "query": "a red window on a black building",
+    "relevant_ids": [
+      "ukaht_f299715f44",
+      "ukaht_7ab47069d0",
+      "ukaht_dd4e91b522",
+      "ukaht_b9275785d9",
+      "ukaht_e65e363891"
+    ]
+  },
+  {
+    "asset_id": "ukaht_8934d5e3cf",
+    "caption": "a red and black house",
+    "query": "a red and black house",
+    "relevant_ids": [
+      "ukaht_8934d5e3cf",
+      "ukaht_8aa0debfa3",
+      "ukaht_336fce0a31",
+      "ukaht_cb73ab9d36",
+      "ukaht_9833133701"
+    ]
+  },
+  {
+    "asset_id": "ukaht_f26aec7df9",
+    "caption": "a red door on a building",
+    "query": "a red door on a building",
+    "relevant_ids": [
+      "ukaht_f26aec7df9",
+      "ukaht_64677a907b",
+      "ukaht_4fef33fba0",
+      "ukaht_2fdbf668a7",
+      "ukaht_465f1b4b24"
+    ]
+  },
+  {
+    "asset_id": "ukaht_4fdc6a7e22",
+    "caption": "a boat is in the water near a mountain",
+    "query": "a boat is in the water near a mountain",
+    "relevant_ids": [
+      "ukaht_4fdc6a7e22",
+      "ukaht_36c069985e",
+      "ukaht_09ac278952",
+      "ukaht_ac3b1df61d",
+      "ukaht_9b3f8d97b8"
+    ]
+  },
+  {
+    "asset_id": "ukaht_c3b2b1bd05",
+    "caption": "a boat is on the shore of a frozen lake",
+    "query": "a boat is on the shore of a frozen lake",
+    "relevant_ids": [
+      "ukaht_c3b2b1bd05",
+      "ukaht_e38b5681c8",
+      "ukaht_efe5271ec9",
+      "ukaht_26d5ccc3a6",
+      "ukaht_4a96b679ae"
+    ]
+  },
+  {
+    "asset_id": "ukaht_3b31b6f8ee",
+    "caption": "a car is parked on the side of a road",
+    "query": "a car is parked on the side of a road",
+    "relevant_ids": [
+      "ukaht_3b31b6f8ee",
+      "ukaht_6856f03338",
+      "ukaht_8bc288ea74",
+      "ukaht_3b63e7a444",
+      "ukaht_9651f15cea"
+    ]
+  },
+  {
+    "asset_id": "ukaht_c4df37339f",
+    "caption": "a dog is walking on the snow covered ground",
+    "query": "a dog is walking on the snow covered ground",
+    "relevant_ids": [
+      "ukaht_c4df37339f",
+      "ukaht_2c197de49f",
+      "ukaht_e446c9549a",
+      "ukaht_66242c9ffb",
+      "ukaht_cc64fd7943"
+    ]
+  },
+  {
+    "asset_id": "ukaht_f0681fd376",
+    "caption": "a pile of old wooden buildings on a rocky beach",
+    "query": "a pile of old wooden buildings on a rocky beach",
+    "relevant_ids": [
+      "ukaht_f0681fd376",
+      "ukaht_e67b2e706f",
+      "ukaht_197da30f9c",
+      "ukaht_d72348ccb4",
+      "ukaht_88d3c30340"
+    ]
+  },
+  {
+    "asset_id": "ukaht_fb4ed0b6b2",
+    "caption": "a white wooden building",
+    "query": "a white wooden building",
+    "relevant_ids": [
+      "ukaht_fb4ed0b6b2",
+      "ukaht_2c3ac4f682",
+      "ukaht_dba3ea5d16",
+      "ukaht_b4ed2a7732",
+      "ukaht_0aefa9b95d"
+    ]
+  },
+  {
+    "asset_id": "ukaht_c4a079d04b",
+    "caption": "a red and white house",
+    "query": "a red and white house",
+    "relevant_ids": [
+      "ukaht_c4a079d04b",
+      "ukaht_afd07e8a13",
+      "ukaht_178f924955",
+      "ukaht_660daa845f"
+    ]
+  },
+  {
+    "asset_id": "ukaht_5e26e85c6d",
+    "caption": "a black and red building",
+    "query": "a black and red building",
+    "relevant_ids": [
+      "ukaht_5e26e85c6d",
+      "ukaht_7de05ad52b",
+      "ukaht_b000ed5dfe",
+      "ukaht_21bd7938d6"
+    ]
+  },
+  {
+    "asset_id": "ukaht_30aefed2cb",
+    "caption": "a building with a lot of snow on the ground",
+    "query": "a building with a lot of snow on the ground",
+    "relevant_ids": [
+      "ukaht_30aefed2cb",
+      "ukaht_a96ed684af",
+      "ukaht_5c8179e8fb",
+      "ukaht_28f2928098"
+    ]
+  },
+  {
+    "asset_id": "ukaht_76be699ee8",
+    "caption": "a small building with a black roof",
+    "query": "a small building with a black roof",
+    "relevant_ids": [
+      "ukaht_76be699ee8",
+      "ukaht_fd46b4a726",
+      "ukaht_1ca878b00d",
+      "ukaht_27deaf7ceb"
+    ]
+  },
+  {
+    "asset_id": "ukaht_af8d65513b",
+    "caption": "a building with a bunch of fire hydras in front of it",
+    "query": "a building with a bunch of fire hydras in front of it",
+    "relevant_ids": [
+      "ukaht_af8d65513b",
+      "ukaht_abc719eab1",
+      "ukaht_6f5d7b3443",
+      "ukaht_e2eee2ab7d"
+    ]
+  },
+  {
+    "asset_id": "ukaht_7189028b6a",
+    "caption": "a small building on a rocky mountain",
+    "query": "a small building on a rocky mountain",
+    "relevant_ids": [
+      "ukaht_7189028b6a",
+      "ukaht_006d59efc3",
+      "ukaht_e3e86faecb",
+      "ukaht_af481f8a7f"
+    ]
+  },
+  {
+    "asset_id": "ukaht_0605d5b4b2",
+    "caption": "a body of water",
+    "query": "a body of water",
+    "relevant_ids": [
+      "ukaht_0605d5b4b2",
+      "ukaht_64779f4ba4",
+      "ukaht_51d516527f",
+      "ukaht_37355612dc"
+    ]
+  },
+  {
+    "asset_id": "ukaht_b52de69d05",
+    "caption": "a snow covered road with a bunch of rocks",
+    "query": "a snow covered road with a bunch of rocks",
+    "relevant_ids": [
+      "ukaht_b52de69d05",
+      "ukaht_79a43e93ac",
+      "ukaht_f597bc3be6",
+      "ukaht_faaec288b1"
+    ]
+  },
+  {
+    "asset_id": "ukaht_a48915f05f",
+    "caption": "a truck is parked on a snowy road",
+    "query": "a truck is parked on a snowy road",
+    "relevant_ids": [
+      "ukaht_a48915f05f",
+      "ukaht_181a747a15",
+      "ukaht_3f5fcea9d4",
+      "ukaht_10c2797db2"
+    ]
+  }
+]

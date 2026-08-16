@@ -1,0 +1,6 @@
+{
+  "num_queries": 50,
+  "adapter_used": true,
+  "map": 0.0507,
+  "ndcg_at_10": 0.1022
+}

@@ -130,11 +130,11 @@ def load_adapter(weights_path: str, mode: str = "mlp", lora_r: int = 16, lora_al
                 lora_r=loaded_r,
                 lora_alpha=loaded_alpha
             )
-            model.load_state_dict(checkpoint["state_dict"])
+            model.load_state_dict(checkpoint["state_dict"], strict=False)
         else:
             # Backward compatibility check for raw state dict
             model = _build_model(mode=mode, lora_r=lora_r, lora_alpha=lora_alpha)
-            model.load_state_dict(checkpoint)
+            model.load_state_dict(checkpoint, strict=False)
             
         model.eval()
         return model

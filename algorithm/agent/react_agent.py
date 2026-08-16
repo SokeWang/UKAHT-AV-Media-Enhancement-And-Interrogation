@@ -158,11 +158,11 @@ def sql_filter(
         resp = requests.post(f"{backend_url}/api/sql-filter", json=payload, timeout=25)
         resp.raise_for_status()
         raw = resp.json().get("data", [])
-        if not raw and keyword:
-            # Fallback to semantic search if metadata query yields no results
-            return semantic_search(query=keyword, category=category)
         if not raw:
-            return "No matching images found for the specified metadata criteria."
+            # Progressive Disclosure Skill Fallback: Automatically fallback to semantic search to prevent empty dead-ends
+            fallback_parts = [f"Base {base_code}" if base_code else "", category or "", subject_type or "", keyword or ""]
+            fallback_q = " ".join([p for p in fallback_parts if p]).strip() or "Antarctic heritage site"
+            return semantic_search.invoke({"query": fallback_q, "category": category})
             
         _current_retrieved_assets.extend(raw)
         

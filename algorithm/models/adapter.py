@@ -1,209 +1,63 @@
 """
-backend/models/adapter.py
-Owner: Peidong Wang — Milestone 3 (polar domain MLP projection adapter)
-
-Responsibilities:
-  - Define the AdapterModel (2-layer MLP) that re-projects CLIP embeddings
-    into a polar-domain-aligned vector space using Triplet Loss training.
-  - Provide load/save helpers so the trained weights can be dropped in
-    without changing retrieval/search.py.
-  - Training is done separately in notebooks/train_adapter.ipynb.
-    This module is the inference-time API.
-
-Usage at inference time:
-    from backend.models.adapter import load_adapter, apply_adapter
-    adapter = load_adapter("static/models/adapter.pth")
-    adapted_emb = apply_adapter(clip_embedding, adapter)
+algorithm/models/adapter.py
+Clean re-export bridge for Peidong's Modular Polar Adapters.
 """
-
-import os
+import sys, os
 import numpy as np
 
-# ---------------------------------------------------------------------------
-# Model definition
-# ---------------------------------------------------------------------------
+# Ensure project root is in sys.path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-def _build_model(input_dim: int = 512, hidden_dim: int = 1024, output_dim: int = 512, mode: str = "mlp", lora_r: int = 16, lora_alpha: int = 32):
-    """
-    Build an adapter model supporting multiple fine-tuning configurations:
-    - MLP: 2-layer MLP (Linear -> ReLU -> Linear).
-    - LoRA: Low-Rank Adapter mapping (Identity base + FP32 low-rank projection).
-    - QLoRA: NF4 Quantized Low-Rank Adapter.
-    """
-    import torch
-    import torch.nn as nn
-    import math
-
-    class AdapterModel(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.mode = mode.lower()
-            self.input_dim = input_dim
-            self.output_dim = output_dim
-            self.lora_r = lora_r
-            self.lora_alpha = lora_alpha
-            
-            # Learnable residual scale parameter initialized to 0.35 for balanced residual adaptation
-            self.gamma = nn.Parameter(torch.tensor(0.35, dtype=torch.float32))
-
-            if self.mode == "mlp":
-                self.net = nn.Sequential(
-                    nn.Linear(input_dim, hidden_dim),
-                    nn.ReLU(),
-                    nn.Linear(hidden_dim, output_dim)
-                )
-                nn.init.kaiming_uniform_(self.net[0].weight)
-                nn.init.zeros_(self.net[0].bias)
-                nn.init.normal_(self.net[2].weight, std=0.01)
-                nn.init.zeros_(self.net[2].bias)
-            elif self.mode in ("lora", "qlora"):
-                # Base weight initialized as identity projection (frozen)
-                self.base_weight = nn.Parameter(torch.eye(output_dim, input_dim), requires_grad=False)
-                
-                # LoRA trainable paths
-                self.lora_A = nn.Linear(input_dim, lora_r, bias=False)
-                self.lora_B = nn.Linear(lora_r, output_dim, bias=False)
-                self.scaling = lora_alpha / lora_r
-                
-                # Standard LoRA initialization: A is Gaussian, B is Zero
-                nn.init.kaiming_uniform_(self.lora_A.weight, a=math.sqrt(5))
-                nn.init.zeros_(self.lora_B.weight)
-                
-                if self.mode == "qlora":
-                    # Register NF4 quantization levels
-                    self.register_buffer("nf4_levels", torch.tensor([
-                        -1.0, -0.6961928, -0.5250716, -0.3949184,
-                        -0.2844413, -0.1847734, -0.0910502, 0.0,
-                        0.0795803, 0.1609302, 0.2461159, 0.3379152,
-                        0.4407079, 0.562617, 0.7229568, 1.0
-                    ]))
-                    # Compute scale and quantize base weight
-                    scale = self.base_weight.abs().max()
-                    if scale == 0:
-                        scale = 1.0
-                    self.register_buffer("weight_scale", torch.tensor(float(scale)))
-                    
-                    normalized = self.base_weight / scale
-                    diffs = (normalized.unsqueeze(-1) - self.nf4_levels.to(self.base_weight.device)).abs()
-                    indices = diffs.argmin(dim=-1)
-                    self.register_buffer("quantized_indices", indices)
-            else:
-                raise ValueError(f"Unknown mode: {mode}")
-
-        def _dequantize_nf4(self):
-            levels = self.nf4_levels.to(self.quantized_indices.device)
-            dequantized = levels[self.quantized_indices] * self.weight_scale
-            return dequantized
-
-        def forward(self, x):
-            if self.mode == "mlp":
-                out = x + 0.1 * self.net(x)
-            elif self.mode == "lora":
-                base_out = x @ self.base_weight.t()
-                lora_out = self.lora_B(self.lora_A(x)) * (self.scaling * 0.1)
-                out = base_out + lora_out
-            elif self.mode == "qlora":
-                dequantized_weight = self._dequantize_nf4()
-                base_out = x @ dequantized_weight.t()
-                lora_out = self.lora_B(self.lora_A(x)) * (self.scaling * 0.1)
-                out = base_out + lora_out
-                
-            # L2 normalise
-            return out / (out.norm(dim=-1, keepdim=True) + 1e-8)
-
-    return AdapterModel()
+from experiments.peidong.models import (
+    BaseAdapter,
+    MLPAdapter,
+    SingleSwiGLUAdapter,
+    DualSwiGLUAdapter,
+    PCSEAdapter,
+    TEDAdapter,
+    build_adapter,
+    load_adapter as _load_adapter,
+)
 
 
-# ---------------------------------------------------------------------------
-# Load / save helpers
-# ---------------------------------------------------------------------------
-
-def load_adapter(weights_path: str, mode: str = "mlp", lora_r: int = 16, lora_alpha: int = 32):
-    """
-    Load a trained AdapterModel from a .pth file.
-    Supports auto-detecting the architecture metadata from checkpoint or falling back to defaults.
-    """
-    import torch
-
-    if not os.path.exists(weights_path):
-        return None
-
-    try:
-        checkpoint = torch.load(weights_path, map_location="cpu")
-        
-        # Check if saved with metadata dictionary
-        if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
-            loaded_mode = checkpoint.get("mode", mode)
-            input_dim = checkpoint.get("input_dim", 512)
-            output_dim = checkpoint.get("output_dim", 512)
-            loaded_r = checkpoint.get("lora_r", lora_r)
-            loaded_alpha = checkpoint.get("lora_alpha", lora_alpha)
-            
-            model = _build_model(
-                input_dim=input_dim,
-                output_dim=output_dim,
-                mode=loaded_mode,
-                lora_r=loaded_r,
-                lora_alpha=loaded_alpha
-            )
-            model.load_state_dict(checkpoint["state_dict"])
-        else:
-            # Backward compatibility check for raw state dict
-            model = _build_model(mode=mode, lora_r=lora_r, lora_alpha=lora_alpha)
-            model.load_state_dict(checkpoint)
-            
-        model.eval()
-        return model
-    except Exception as e:
-        print(f"[WARN] Failed to load adapter from {weights_path}: {e}")
-        return None
+def _build_model(input_dim: int = 512, hidden_dim: int = 1024, output_dim: int = 512, mode: str = "mlp", **kwargs):
+    """Backward-compatible wrapper for model building."""
+    return build_adapter(mode=mode, input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim)
 
 
 def save_adapter(model, weights_path: str) -> None:
-    """Persist adapter weights alongside architecture metadata for automatic reloading."""
-    import torch
-    os.makedirs(os.path.dirname(weights_path), exist_ok=True)
-    
-    checkpoint = {
-        "state_dict": model.state_dict(),
-        "mode": getattr(model, "mode", "mlp"),
-        "input_dim": getattr(model, "input_dim", 512),
-        "output_dim": getattr(model, "output_dim", 512),
-        "lora_r": getattr(model, "lora_r", 16),
-        "lora_alpha": getattr(model, "lora_alpha", 32),
-    }
-    torch.save(checkpoint, weights_path)
+    """Save adapter model using its persisted method or fallback."""
+    if hasattr(model, "save"):
+        model.save(weights_path)
+    else:
+        import torch
+        os.makedirs(os.path.dirname(weights_path), exist_ok=True)
+        torch.save(model.state_dict(), weights_path)
 
 
-# ---------------------------------------------------------------------------
-# Inference helper
-# ---------------------------------------------------------------------------
+def load_adapter(weights_path: str, mode: str = "mlp", **kwargs):
+    """Load adapter model using polymorphic factory."""
+    return _load_adapter(weights_path=weights_path, mode=mode)
+
 
 def apply_adapter(embedding: np.ndarray, adapter) -> np.ndarray:
-    """
-    Pass CLIP embeddings through the trained adapter.
-
-    Args:
-        embedding: CLIP embedding(s) as a float32 numpy array. Can be 1D (512,) or 2D (N, 512).
-        adapter:   AdapterModel instance returned by load_adapter(), or None.
-
-    Returns:
-        Adapted float32 numpy array of same shape. Falls back to original if adapter is None.
-    """
+    """Pass CLIP embeddings through trained adapter for inference."""
     if adapter is None:
         return embedding
 
     import torch
 
     is_1d = (embedding.ndim == 1)
-    if is_1d:
-        x = torch.from_numpy(embedding).unsqueeze(0)
-    else:
-        x = torch.from_numpy(embedding)
+    x = torch.from_numpy(embedding).unsqueeze(0) if is_1d else torch.from_numpy(embedding)
 
+    adapter.eval()
     with torch.no_grad():
-        out = adapter(x)
+        if hasattr(adapter, "adapt_image"):
+            out = adapter.adapt_image(x)
+        else:
+            out = adapter(x)
 
-    if is_1d:
-        return out.squeeze(0).numpy().astype(np.float32)
-    return out.numpy().astype(np.float32)
+    out_np = out.detach().cpu().numpy().astype(np.float32)
+    return out_np.squeeze(0) if is_1d else out_np

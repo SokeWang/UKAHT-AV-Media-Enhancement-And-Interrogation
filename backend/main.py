@@ -881,11 +881,24 @@ def perform_s3_sync():
                 continue
 
             try:
-                resp = requests.post(f"{ALGO_API_BASE}/api/algo/caption/batch", json={"paths": local_paths}, timeout=60)
-                resp.raise_for_status()
-                captions = resp.json()["data"]["captions"]
+                from experiments.yisheng.caption_annotator import get_annotator_from_config
+                active_annotator = get_annotator_from_config()
+                meta_batch = []
+                for key, local_p in zip(valid_batch_keys, local_paths):
+                    meta = extract_metadata_via_llm(key)
+                    title_stem = Path(key).stem
+                    meta_batch.append({
+                        "title": title_stem.replace("_", " ").replace("-", " ").title(),
+                        "category": meta.get("subject_type") or "S3 Ingested",
+                        "base_code": meta.get("base_code"),
+                        "subject_type": meta.get("subject_type"),
+                        "shooting_year": meta.get("shooting_year"),
+                        "local_path": local_p,
+                        "description": ""
+                    })
+                captions = active_annotator.batch_generate_captions(meta_batch)
             except Exception as exc:
-                print(f"[SYNC WARN] BLIP captioning failed: {exc}")
+                print(f"[SYNC WARN] Active annotator captioning failed: {exc}")
                 captions = [""] * len(local_paths)
 
             try:
@@ -1256,7 +1269,7 @@ def api_evaluate_dashboard():
             DEFAULT_GOLDEN_PATH,
             os.path.join(BASE_DIR, "golden_test_set.json"),
             os.path.join(BASE_DIR, "backend", "golden_test_set.json"),
-            os.path.dirname(BASE_DIR),
+            os.path.join(os.path.dirname(BASE_DIR), "golden_test_set.json"),
             "/app/golden_test_set.json",
             "/app/backend/golden_test_set.json"
         ]
@@ -1404,9 +1417,10 @@ def api_evaluate_dashboard():
                 ideal_dcg = _dcg(list(relevant)[:10], relevant)
                 base_ndcg = _dcg(base_ranked[:10], relevant) / ideal_dcg if ideal_dcg > 0 else 0.0
                 
-                # Adapted similarity (Text query stays in CLIP text space, database images in Adapted space)
+                # Adapted similarity (Dual adapter adapts both text query and database images)
                 if adapter_loaded:
-                    adapt_scores = np.dot(adapted_matrix, q_emb)
+                    q_emb_adapted = apply_text_adapter_from_algo(q_emb, adapter_path)
+                    adapt_scores = np.dot(adapted_matrix, q_emb_adapted)
                     adapt_sort_idx = np.argsort(adapt_scores)[::-1]
                     adapt_ranked = [asset_ids[idx] for idx in adapt_sort_idx]
                     adapt_ap = _average_precision(adapt_ranked, relevant)

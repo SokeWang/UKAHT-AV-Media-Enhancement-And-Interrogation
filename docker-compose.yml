@@ -41,6 +41,7 @@ services:
       - "8001:8001"
     volumes:
       # Mount source code for hot reloading
+      - ./config.yaml:/app/config.yaml
       - ./algorithm:/app/algorithm
       - ./experiments:/app/experiments
       - ./backend:/app/backend:ro

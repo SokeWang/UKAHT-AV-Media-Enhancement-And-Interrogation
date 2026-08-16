@@ -1,0 +1,29 @@
+# ==============================================================================
+# UKAHT Multimodal Media Enhancement & Interrogation System Configuration
+# ==============================================================================
+
+# 1. Yisheng's Caption Annotator Strategy (张艺升 - 图像 Caption 自动标注与精炼方案)
+#    Options: [gemma, blip]
+#      - gemma : Gemma 4:e4b Normalized Multimodal Annotator (Anti-hallucination & Multi-aspect Terrain)
+#      - blip  : Raw BLIP Baseline Model Annotator (Unconditional image captioning)
+active_annotator: gemma
+
+# 2. Peidong's Polar Projection Adapter Model Strategy (王沛东 - 极地特征向量适配器模型)
+#    Options: [dual_swiglu, pcse, pcse_acra, swiglu, mlp, ted, lora, qlora]
+#      - dual_swiglu : Dual-branch SwiGLU Gated Adapter (Default high accuracy)
+#      - pcse        : Polar-Contextual Semantic Enhancement Adapter
+#      - pcse_acra   : PCSE Adapter + ACRA Covariance Spectrum Equalization (SOTA - Optimal MAP & Diversity)
+#      - swiglu      : Single-branch SwiGLU Gated Adapter
+#      - mlp         : 2-Layer Baseline MLP Projection Adapter
+#      - ted         : Temporal & Environment Decoupled Adapter
+#      - lora        : Low-Rank Adaptation (LoRA) Projection Layer
+#      - qlora       : Quantized NF4 Low-Rank Adaptation (QLoRA) Projection Layer
+active_adapter: pcse_acra
+
+# 3. LLM ReAct Agent Controller Model Strategy (AI 交互 Agent 大语言模型)
+#    Options: [gemma4:e4b, llama3.2:3b, qwen3.5:4b, qwen2.5:3b]
+#      - gemma4:e4b  : Gemma 4:e4b Multimodal ReAct Controller (Baseline, high RAG reasoning)
+#      - llama3.2:3b : Llama 3.2 3B ReAct Controller (100% Intent Routing & Lightweight)
+#      - qwen3.5:4b  : Qwen 3.5 4B / Qwen 2.5 3B ReAct Controller
+active_llm_agent: gemma4:e4b
+

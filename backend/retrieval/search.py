@@ -58,6 +58,15 @@ def apply_adapter_from_algo(embeddings: np.ndarray, adapter_path: str = "") -> n
             embeddings_list = embeddings.tolist()
         
         payload = {"embeddings": embeddings_list}
+
+
+def apply_text_adapter_from_algo(embeddings: np.ndarray, adapter_path: str = "") -> np.ndarray:
+    try:
+        from algorithm.models.adapter import apply_text_adapter, load_adapter
+        adapter = load_adapter(adapter_path)
+        return apply_text_adapter(embeddings, adapter)
+    except Exception as exc:
+        return embeddings
         if adapter_path:
             payload["adapter_path"] = adapter_path
             
@@ -176,9 +185,12 @@ def semantic_search(
         scores_arr = [1.0] * len(matched_rows)
         indices_arr = list(range(len(matched_rows)))
     else:
-        # Retrieve text embedding (keep in CLIP text space; image embeddings are adapted)
+        # Retrieve text embedding and adapt via text branch if dual adapter is active
         query_emb = get_text_embedding_from_algo(query)
         query_emb = query_emb.astype("float32").reshape(1, -1)
+        if adapter:
+            adapter_path = adapter if isinstance(adapter, str) else ""
+            query_emb = apply_text_adapter_from_algo(query_emb, adapter_path)
 
         # Build the FAISS Index
         # Since query and asset embeddings are L2-normalized, IndexFlatIP is equivalent to cosine similarity.

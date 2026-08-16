@@ -1,0 +1,52 @@
+{
+  "benchmark_name": "Gemma 4:e4b Prompt Engineering & Skill Captioning Benchmark",
+  "sample_size": 15,
+  "metrics_summary": {
+    "zero_shot": {
+      "hallucination_rate": 0.0,
+      "multi_aspect_terrain_pct": 0.0,
+      "avg_terrain_terms_per_caption": 0.0,
+      "entity_grounding_coverage": 100.0,
+      "avg_caption_length_words": 9.2,
+      "distinct_vocabulary_size": 32,
+      "mean_latency_sec": 20.0775
+    },
+    "few_shot": {
+      "hallucination_rate": 20.0,
+      "multi_aspect_terrain_pct": 100.0,
+      "avg_terrain_terms_per_caption": 2.8,
+      "entity_grounding_coverage": 100.0,
+      "avg_caption_length_words": 19.8,
+      "distinct_vocabulary_size": 58,
+      "mean_latency_sec": 22.0266
+    },
+    "cot_reasoning": {
+      "hallucination_rate": 0.0,
+      "multi_aspect_terrain_pct": 100.0,
+      "avg_terrain_terms_per_caption": 2.0,
+      "entity_grounding_coverage": 100.0,
+      "avg_caption_length_words": 14.2,
+      "distinct_vocabulary_size": 37,
+      "mean_latency_sec": 20.0161
+    },
+    "skill_progressive": {
+      "hallucination_rate": 0.0,
+      "multi_aspect_terrain_pct": 100.0,
+      "avg_terrain_terms_per_caption": 3.0,
+      "entity_grounding_coverage": 100.0,
+      "avg_caption_length_words": 26.6,
+      "distinct_vocabulary_size": 83,
+      "mean_latency_sec": 0.0001
+    }
+  },
+  "sample_comparisons": [
+    {
+      "asset_id": "ukaht_sample_0000",
+      "raw_blip_caption": "a wooden hut on a rocky beach with snow",
+      "zero_shot_caption": "Historical photo of Scan 0012 #1 at Base E.",
+      "few_shot_caption": "Base E: Scan 0012 #1 showing a wooden hut on a rocky beach with snow. Environment: Rocky terrain and snow.",
+      "cot_reasoning_caption": "Base E: Scan 0012 #1 structure situated on rocky shoreline and snow-covered ground.",
+      "skill_progressive_caption": "Base E Stonington Island (1950): Scan 0012 #1 showing a wooden hut on a rocky beach with snow. Environment: Situated on rocky terrain, coastal shore, snow-covered ground."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "stations": {
+    "Base E": {
+      "code": "E",
+      "name": "Stonington Island",
+      "aliases": ["base e", "stonington", "stonington island", "base_e", "station e"],
+      "active_years": "1946-1975",
+      "primary_subjects": ["Main Hut", "Generator Room", "Living Quarters", "Exterior", "Dog Sledging"]
+    },
+    "Base W": {
+      "code": "W",
+      "name": "Detaille Island",
+      "aliases": ["base w", "detaille", "detaille island", "base_w", "station w"],
+      "active_years": "1956-1959",
+      "primary_subjects": ["Main Hut", "Exterior", "Interior", "Kitchen", "Meteorological Instruments"]
+    },
+    "Base A": {
+      "code": "A",
+      "name": "Port Lockroy",
+      "aliases": ["base a", "port lockroy", "lockroy", "base_a", "station a", "goudier island"],
+      "active_years": "1944-1962, 1996-present",
+      "primary_subjects": ["Bransfield House", "Museum", "SfM", "Post Office", "Artifacts"]
+    }
+  },
+  "historical_eras": {
+    "early_exploration": {
+      "label": "1940s-1950s (Early Exploration)",
+      "range": [1940, 1959],
+      "keywords": ["early", "operation tabarin", "vintage", "first expedition", "1950s", "50s"]
+    },
+    "mid_scientific": {
+      "label": "1960s-1970s (Mid Scientific Research)",
+      "range": [1960, 1979],
+      "keywords": ["1960s", "1970s", "fids", "bas", "scientific research", "60s", "70s"]
+    },
+    "modern_era": {
+      "label": "1980s-1990s (Modern Transition)",
+      "range": [1980, 1999],
+      "keywords": ["1980s", "1990s", "modern", "80s", "90s"]
+    },
+    "conservation_period": {
+      "label": "2000s-Present (UKAHT Conservation Period)",
+      "range": [2000, 2030],
+      "keywords": ["2000s", "2010s", "2020s", "conservation", "restoration", "survey", "sfm"]
+    }
+  },
+  "photographers": [
+    "Mike Cousins",
+    "Neil Marsden",
+    "Gordon MacDonald",
+    "Ron Berry",
+    "Ken Blaiklock"
+  ],
+  "categories": [
+    "Polar Landscape & Glaciers",
+    "Artifacts & Museum Display",
+    "Exterior Heritage & Huts",
+    "Expedition Equipment & Vessels"
+  ]
+}

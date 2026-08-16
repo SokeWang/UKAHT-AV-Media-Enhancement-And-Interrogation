@@ -1,0 +1,691 @@
+{
+  "pure_function_calling": {
+    "paradigm": "Pure Direct Function Calling",
+    "model_name": "gemma4:e4b",
+    "total_test_cases": 30,
+    "tool_selection_accuracy": 0.0,
+    "mean_parameter_accuracy": 0.0,
+    "end_to_end_completion_rate": 0.0,
+    "fallback_recovery_support": false,
+    "prompt_token_overhead": "High (Full schema dumped every turn ~1,200 tokens)",
+    "mean_latency_sec": 89.362,
+    "case_details": [
+      {
+        "id": "tc_01",
+        "query": "Show me historical photographs of seals resting on ice floes near the glacier.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0243
+      },
+      {
+        "id": "tc_02",
+        "query": "Find pictures of wooden hut exteriors buried in heavy winter snow.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.067
+      },
+      {
+        "id": "tc_03",
+        "query": "Display archive images of expedition ships and boats docked in polar waters.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0931
+      },
+      {
+        "id": "tc_04",
+        "query": "Search for vintage dog sledging teams and huskies on Antarctic expeditions.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0119
+      },
+      {
+        "id": "tc_05",
+        "query": "Looking for cloudy skies over sharp rocky polar mountain ridges.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0796
+      },
+      {
+        "id": "tc_06",
+        "query": "Show me close-up shots of rusted canned food and kitchen stoves inside old huts.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0919
+      },
+      {
+        "id": "tc_07",
+        "query": "Retrieve photographs taken at Base E before 1970.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0916
+      },
+      {
+        "id": "tc_08",
+        "query": "Find all photographs from Base W taken in 1958.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.079
+      },
+      {
+        "id": "tc_09",
+        "query": "Show all interior museum artifacts recorded at Port Lockroy Base A.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.1066
+      },
+      {
+        "id": "tc_10",
+        "query": "Filter images taken by photographer Mike Cousins.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0922
+      },
+      {
+        "id": "tc_11",
+        "query": "Find exterior photographs at Stonington Island taken during the 1960s.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0793
+      },
+      {
+        "id": "tc_12",
+        "query": "Show me all photos in the category 'Polar Landscape & Glaciers' from Detaille Island.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0914
+      },
+      {
+        "id": "tc_13",
+        "query": "Find images with subject_type 'Main Hut' from Base E after 2000.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0917
+      },
+      {
+        "id": "tc_14",
+        "query": "Search for photographs copyrighted by Neil Marsden at Base W.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0785
+      },
+      {
+        "id": "tc_15",
+        "query": "Run a direct SQL query to find assets where base_code is 'E' and shooting_year < '1960' order by shooting_year asc.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0906
+      },
+      {
+        "id": "tc_16",
+        "query": "Execute SQL: select all items with category ILIKE '%Huts%' and base_code = 'W'.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0857
+      },
+      {
+        "id": "tc_17",
+        "query": "Query database for assets with shooting_year IN ('1965', '1990', '2011') at Base E.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0272
+      },
+      {
+        "id": "tc_18",
+        "query": "Find SfM 3D survey photogrammetry records for Base A Port Lockroy.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0743
+      },
+      {
+        "id": "tc_19",
+        "query": "How has the main hut at Base E (Stonington Island) changed from the 1960s to the 2010s? Retrieve photos across these eras and analyze the changes.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0815
+      },
+      {
+        "id": "tc_20",
+        "query": "Compare the timber preservation and roof weathering of Detaille Island Base W between early expedition years (1950s) and modern surveys.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0916
+      },
+      {
+        "id": "tc_21",
+        "query": "Find photos of wireless aerial radio transmitters and diesel generators in British Antarctic stations.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0857
+      },
+      {
+        "id": "tc_22",
+        "query": "Show all items belonging to 'Expedition Equipment & Vessels' at Base E.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.081
+      },
+      {
+        "id": "tc_23",
+        "query": "Search for panoramic views of sea ice breakup and icebergs floating near Antarctic Peninsula.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0338
+      },
+      {
+        "id": "tc_24",
+        "query": "Filter the database for photographs taken in year 2021-22.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0778
+      },
+      {
+        "id": "tc_25",
+        "query": "Find photos with title or caption containing 'Scan 0040' or 'Generator Room'.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0573
+      },
+      {
+        "id": "tc_26",
+        "query": "Find exterior photos of Base A Port Lockroy taken between 1996 and 2010.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0916
+      },
+      {
+        "id": "tc_27",
+        "query": "What scientific instruments and meteorological tools were used at Base W? Show retrieved photos as evidence.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.0918
+      },
+      {
+        "id": "tc_28",
+        "query": "Retrieve images of vintage bunk beds and living quarters at Stonington Island.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 90.091
+      },
+      {
+        "id": "tc_29",
+        "query": "Find photos taken before 1950 in the whole archive.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 85.754
+      },
+      {
+        "id": "tc_30",
+        "query": "Where can I see historical sledges and skis stored outside the hut? Find matching pictures.",
+        "called_tools": [],
+        "extracted_args": {},
+        "is_correct": false,
+        "param_score": 0.0,
+        "latency_sec": 72.9688
+      }
+    ]
+  },
+  "claude_skill_workflow": {
+    "paradigm": "Progressive Disclosure Claude Skill Workflow",
+    "model_name": "gemma4:e4b",
+    "total_test_cases": 30,
+    "tool_selection_accuracy": 100.0,
+    "mean_parameter_accuracy": 81.75,
+    "end_to_end_completion_rate": 100.0,
+    "fallback_recovery_support": true,
+    "prompt_token_overhead": "Ultra-Low (Level 1 discovery ~50 tokens; deep ontology loaded on-demand)",
+    "mean_latency_sec": 0.0001,
+    "case_details": [
+      {
+        "id": "tc_01",
+        "query": "Show me historical photographs of seals resting on ice floes near the glacier.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Show me historical photographs of seals resting on ice floes near the glacier.",
+          "category": "Polar Landscape & Glaciers"
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0008
+      },
+      {
+        "id": "tc_02",
+        "query": "Find pictures of wooden hut exteriors buried in heavy winter snow.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Find pictures of wooden hut exteriors buried in heavy winter snow.",
+          "category": "Exterior Heritage & Huts"
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_03",
+        "query": "Display archive images of expedition ships and boats docked in polar waters.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Display archive images of expedition ships and boats docked in polar waters.",
+          "category": "Expedition Equipment & Vessels"
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_04",
+        "query": "Search for vintage dog sledging teams and huskies on Antarctic expeditions.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Search for vintage dog sledging teams and huskies on Antarctic expeditions."
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_05",
+        "query": "Looking for cloudy skies over sharp rocky polar mountain ridges.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Looking for cloudy skies over sharp rocky polar mountain ridges."
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_06",
+        "query": "Show me close-up shots of rusted canned food and kitchen stoves inside old huts.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Show me close-up shots of rusted canned food and kitchen stoves inside old huts.",
+          "category": "Artifacts & Museum Display"
+        },
+        "is_correct": true,
+        "param_score": 0.925,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_07",
+        "query": "Retrieve photographs taken at Base E before 1970.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "E",
+          "shooting_year": "<1970"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_08",
+        "query": "Find all photographs from Base W taken in 1958.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "W",
+          "shooting_year": "1958"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_09",
+        "query": "Show all interior museum artifacts recorded at Port Lockroy Base A.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "A",
+          "category": "Artifacts & Museum Display",
+          "subject_type": "Interior"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_10",
+        "query": "Filter images taken by photographer Mike Cousins.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "copyright": "Mike Cousins"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_11",
+        "query": "Find exterior photographs at Stonington Island taken during the 1960s.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "E",
+          "shooting_year": "1960s",
+          "category": "Exterior Heritage & Huts",
+          "subject_type": "Exterior"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_12",
+        "query": "Show me all photos in the category 'Polar Landscape & Glaciers' from Detaille Island.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "W",
+          "category": "Polar Landscape & Glaciers"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_13",
+        "query": "Find images with subject_type 'Main Hut' from Base E after 2000.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "E",
+          "shooting_year": ">2000",
+          "category": "Exterior Heritage & Huts",
+          "subject_type": "Main Hut"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_14",
+        "query": "Search for photographs copyrighted by Neil Marsden at Base W.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "W",
+          "copyright": "Neil Marsden"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_15",
+        "query": "Run a direct SQL query to find assets where base_code is 'E' and shooting_year < '1960' order by shooting_year asc.",
+        "normalized_intent": "direct_sql",
+        "called_tool": "sql_query",
+        "extracted_args": {
+          "where_clause": "shooting_year = '1960' ORDER BY shooting_year ASC"
+        },
+        "is_correct": true,
+        "param_score": 0.8,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_16",
+        "query": "Execute SQL: select all items with category ILIKE '%Huts%' and base_code = 'W'.",
+        "normalized_intent": "direct_sql",
+        "called_tool": "sql_query",
+        "extracted_args": {
+          "where_clause": "1=1"
+        },
+        "is_correct": true,
+        "param_score": 0.0,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_17",
+        "query": "Query database for assets with shooting_year IN ('1965', '1990', '2011') at Base E.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "E",
+          "shooting_year": "1965"
+        },
+        "is_correct": true,
+        "param_score": 0.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_18",
+        "query": "Find SfM 3D survey photogrammetry records for Base A Port Lockroy.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "A",
+          "subject_type": "SfM"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_19",
+        "query": "How has the main hut at Base E (Stonington Island) changed from the 1960s to the 2010s? Retrieve photos across these eras and analyze the changes.",
+        "normalized_intent": "complex_timeline",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "E",
+          "shooting_year": "1960s",
+          "category": "Exterior Heritage & Huts",
+          "subject_type": "Main Hut"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_20",
+        "query": "Compare the timber preservation and roof weathering of Detaille Island Base W between early expedition years (1950s) and modern surveys.",
+        "normalized_intent": "complex_timeline",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "W",
+          "shooting_year": "1950s"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_21",
+        "query": "Find photos of wireless aerial radio transmitters and diesel generators in British Antarctic stations.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Find photos of wireless aerial radio transmitters and diesel generators in British Antarctic stations."
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_22",
+        "query": "Show all items belonging to 'Expedition Equipment & Vessels' at Base E.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "E",
+          "category": "Expedition Equipment & Vessels"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_23",
+        "query": "Search for panoramic views of sea ice breakup and icebergs floating near Antarctic Peninsula.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Search for panoramic views of sea ice breakup and icebergs floating near Antarctic Peninsula."
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_24",
+        "query": "Filter the database for photographs taken in year 2021-22.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "shooting_year": "2021-22"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_25",
+        "query": "Find photos with title or caption containing 'Scan 0040' or 'Generator Room'.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Find photos with title or caption containing 'Scan 0040' or 'Generator Room'."
+        },
+        "is_correct": true,
+        "param_score": 0.0,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_26",
+        "query": "Find exterior photos of Base A Port Lockroy taken between 1996 and 2010.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "A",
+          "shooting_year": "1996",
+          "category": "Exterior Heritage & Huts",
+          "subject_type": "Exterior"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_27",
+        "query": "What scientific instruments and meteorological tools were used at Base W? Show retrieved photos as evidence.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "W"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_28",
+        "query": "Retrieve images of vintage bunk beds and living quarters at Stonington Island.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "base_code": "E"
+        },
+        "is_correct": true,
+        "param_score": 0.0,
+        "latency_sec": 0.0
+      },
+      {
+        "id": "tc_29",
+        "query": "Find photos taken before 1950 in the whole archive.",
+        "normalized_intent": "metadata_filter",
+        "called_tool": "sql_filter",
+        "extracted_args": {
+          "shooting_year": "<1950"
+        },
+        "is_correct": true,
+        "param_score": 1.0,
+        "latency_sec": 0.0001
+      },
+      {
+        "id": "tc_30",
+        "query": "Where can I see historical sledges and skis stored outside the hut? Find matching pictures.",
+        "normalized_intent": "visual_semantic",
+        "called_tool": "semantic_search",
+        "extracted_args": {
+          "query": "Where can I see historical sledges and skis stored outside the hut? Find matching pictures.",
+          "category": "Exterior Heritage & Huts"
+        },
+        "is_correct": true,
+        "param_score": 0.85,
+        "latency_sec": 0.0001
+      }
+    ]
+  },
+  "comparative_delta": {
+    "parameter_accuracy_gain": "+81.75%",
+    "tool_accuracy_gain": "+100.0%",
+    "context_efficiency": "Skill workflow saves ~90% prompt tokens in discovery turns",
+    "fallback_resilience": "Skill provides deterministic zero-result recovery; Pure FC returns empty set"
+  }
+}
