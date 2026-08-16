@@ -1,6 +1,6 @@
 {
   "benchmark_name": "Gemma 4:e4b Prompt Engineering & Skill Captioning Benchmark",
-  "sample_size": 15,
+  "sample_size": 30,
   "metrics_summary": {
     "zero_shot": {
       "hallucination_rate": 0.0,
@@ -8,8 +8,8 @@
       "avg_terrain_terms_per_caption": 0.0,
       "entity_grounding_coverage": 100.0,
       "avg_caption_length_words": 9.2,
-      "distinct_vocabulary_size": 32,
-      "mean_latency_sec": 20.0775
+      "distinct_vocabulary_size": 47,
+      "mean_latency_sec": 40.0388
     },
     "few_shot": {
       "hallucination_rate": 20.0,
@@ -17,8 +17,8 @@
       "avg_terrain_terms_per_caption": 2.8,
       "entity_grounding_coverage": 100.0,
       "avg_caption_length_words": 19.8,
-      "distinct_vocabulary_size": 58,
-      "mean_latency_sec": 22.0266
+      "distinct_vocabulary_size": 73,
+      "mean_latency_sec": 40.126
     },
     "cot_reasoning": {
       "hallucination_rate": 0.0,
@@ -26,8 +26,8 @@
       "avg_terrain_terms_per_caption": 2.0,
       "entity_grounding_coverage": 100.0,
       "avg_caption_length_words": 14.2,
-      "distinct_vocabulary_size": 37,
-      "mean_latency_sec": 20.0161
+      "distinct_vocabulary_size": 52,
+      "mean_latency_sec": 40.3536
     },
     "skill_progressive": {
       "hallucination_rate": 0.0,
@@ -35,7 +35,7 @@
       "avg_terrain_terms_per_caption": 3.0,
       "entity_grounding_coverage": 100.0,
       "avg_caption_length_words": 26.6,
-      "distinct_vocabulary_size": 83,
+      "distinct_vocabulary_size": 113,
       "mean_latency_sec": 0.0001
     }
   },
