@@ -54,7 +54,7 @@ class TrainRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    session_id: Optional[str] = "default"
+    session_id: Optional[str] = "default"  # defaults to "default" session
 
 # ---------------------------------------------------------------------------
 # Startup Model Preloading (Warm up Ollama)
@@ -132,23 +132,6 @@ def _get_agent(session_id: str):
     if session_id not in _agent_sessions:
         _agent_sessions[session_id] = ReActAgent()
     return _agent_sessions[session_id]
-
-# ---------------------------------------------------------------------------
-# Request / Response Models
-# ---------------------------------------------------------------------------
-class TextRequest(BaseModel):
-    text: str
-
-class AdaptRequest(BaseModel):
-    embeddings: List[List[float]]
-    adapter_path: Optional[str] = None
-
-class BatchPathsRequest(BaseModel):
-    paths: List[str]
-
-class ChatRequest(BaseModel):
-    message: str
-    session_id: Optional[str] = None
 
 # ---------------------------------------------------------------------------
 # API Endpoints

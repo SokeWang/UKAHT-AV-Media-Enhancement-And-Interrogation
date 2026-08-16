@@ -75,6 +75,7 @@ def semantic_search(query: str, category: str = None) -> str:
         for idx, item in enumerate(top_items, 1):
             output_lines.append(_format_asset_rag_payload(idx, item))
         output_lines.append("\nUse these extracted visual details, years, base codes, and photo IDs to synthesize a grounded executive analysis. Cite photo IDs like [ID: asset_id]. Do not re-query for the exact same term.")
+        return "\n".join(output_lines)
     except Exception as exc:
         return f"Error executing search: {str(exc)}"
 
